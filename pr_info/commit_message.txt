@@ -1,13 +1,13 @@
-feat: add subprocess_runner module to mcp-coder-utils
+feat: add subprocess_streaming module with inactivity watchdog
 
-Copy subprocess_runner from mcp_tools_py into mcp_coder_utils with
-three targeted edits:
-- Generalize module docstring (remove MCP server framing)
-- Simplify check_tool_missing_error message (drop CLI flag hints)
-- Export prepare_env in __all__ (needed by subprocess_streaming)
+Add subprocess_streaming.py with StreamResult iterator wrapper and
+stream_subprocess generator for real-time stdout line streaming.
+Includes an inactivity watchdog that kills hung processes after a
+configurable timeout.
 
-Add comprehensive unit tests with updated import paths.
-All public API symbols preserved: CommandResult, CommandOptions,
-execute_subprocess, execute_command, launch_process, format_command,
-prepare_env, check_tool_missing_error, truncate_stderr, and
-re-exported subprocess exceptions.
+- StreamResult: iterator with .result property for final CommandResult
+- stream_subprocess: generator yielding stdout lines with optional
+  inactivity watchdog using a background thread
+- Platform-aware process killing (taskkill on Windows, killpg on Unix)
+- 3 unit tests covering basic streaming, active process no-timeout,
+  and inactivity timeout kill scenarios
