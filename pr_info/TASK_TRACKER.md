@@ -21,7 +21,7 @@ This tracks **Feature Implementation** consisting of multiple **Tasks**.
 
 ## Tasks
 
-- [ ] [Step 1](steps/step_1.md) — Create `log_utils.py` module + all tests (`test_log_utils.py`, `test_log_utils_redaction.py`)
+- [x] [Step 1](steps/step_1.md) — Create `log_utils.py` module + all tests (`test_log_utils.py`, `test_log_utils_redaction.py`)
 - [ ] [Step 2](steps/step_2.md) — Update architecture documentation
 
 ## Pull Request

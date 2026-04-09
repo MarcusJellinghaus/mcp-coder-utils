@@ -1,0 +1,14 @@
+feat: add canonical log_utils module with tests
+
+Create shared logging configuration and utilities module consolidating
+logging setup from mcp_coder, mcp_tools_py, and mcp_workspace into a
+single canonical implementation in mcp_coder_utils.
+
+New files:
+- src/mcp_coder_utils/log_utils.py: Shared logging with structlog
+  integration, OUTPUT level (25), CleanFormatter, ExtraFieldsFormatter,
+  redaction support, and @overload-based log_function_call decorator
+- tests/test_log_utils.py: Tests for setup_logging, log_function_call,
+  formatters, OUTPUT level, and logger naming
+- tests/test_log_utils_redaction.py: Tests for _redact_for_logging with
+  string keys, tuple keys, and sensitive_fields decorator variant
