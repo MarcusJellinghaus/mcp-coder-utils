@@ -175,10 +175,10 @@ git fetch
 git ls-tree
 gh issue view
 gh run view
-mcp-coder git-tool compact-diff
-mcp-coder check branch-status
-mcp-coder check file-size
-mcp-coder gh-tool set-status <label>
+mcp-coder git-tool compact-diff    # diff that detects moves, collapses unchanged blocks
+mcp-coder check branch-status      # CI status, rebase needs, task completion, labels
+mcp-coder check file-size           # find files exceeding line-count threshold
+mcp-coder gh-tool set-status <label>  # change issue workflow status label
 ```
 
 **Status labels:** Use `mcp-coder gh-tool set-status` to change issue workflow status — never use raw `gh issue edit` with label flags. (Note: this repo's labels are not yet configured — set up label set before relying on status workflow.)
