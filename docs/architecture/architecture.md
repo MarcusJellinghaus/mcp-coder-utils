@@ -30,6 +30,10 @@ consumed by `mcp-coder`, `mcp-tools-py`, `mcp-workspace`, and `mcp-config`.
    helpers belong in the consumer.
 4. **Stable public API.** Renames and signature changes break all 4 downstream
    repos. Treat the top-level exports as a contract.
+5. **`__all__` discipline.** Only add a symbol to `__all__` when it has at least
+   one external consumer (or is required by a sibling module like
+   `subprocess_streaming`). Internal helpers stay unexported. Promote to `__all__`
+   when a second consumer appears.
 
 ## Package layout
 
@@ -37,19 +41,15 @@ consumed by `mcp-coder`, `mcp-tools-py`, `mcp-workspace`, and `mcp-config`.
 src/mcp_coder_utils/
     __init__.py
     py.typed
+    subprocess_runner.py
+    subprocess_streaming.py
 ```
-
-Real modules land in Phase 2 — see `repo_architecture_plan/mcp_utils_plan.md`
-in the `mcp_coder` repo for the migration plan. Initial scope:
-
-- `subprocess_runner` — canonical subprocess wrapper (merge of `mcp_coder`
-  and `mcp_tools_py` versions)
-- `subprocess_streaming` — pairs with `subprocess_runner`
-- `log_utils` — structured logging with redaction support
 
 ## Tests
 
-All tests are fast unit tests — there are no integration markers. Run with:
+All tests are fast unit tests — there are no integration markers. Some tests
+exercise real subprocess execution (not purely mock-based) but require no
+special markers or configuration. Run with:
 
 ```
 pytest -n auto
