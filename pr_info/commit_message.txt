@@ -1,5 +1,0 @@
-fix: resolve pylint W1404 implicit-str-concat warnings in test files
-
-Merge adjacent string literals into single strings in:
-- tests/test_subprocess_runner.py:457 (timeout test script)
-- tests/test_subprocess_streaming.py:19 (inactivity timeout script)
