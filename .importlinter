@@ -1,0 +1,50 @@
+# =============================================================================
+# Import Linter Configuration
+# =============================================================================
+# Enforces architectural boundaries for mcp_coder_utils.
+# Run with: lint-imports
+#
+# This is a leaf library — it has no internal dependencies on other mcp-coder
+# repos. The contracts below enforce that property and isolate third-party
+# libraries to the modules that own them.
+# =============================================================================
+
+[importlinter]
+root_packages =
+    mcp_coder_utils
+    tests
+root_package_paths =
+    src
+    .
+include_external_packages = True
+
+# -----------------------------------------------------------------------------
+# Contract: Source Code Independence from Tests
+# -----------------------------------------------------------------------------
+# Production code must never import from test modules.
+# -----------------------------------------------------------------------------
+[importlinter:contract:no_test_imports_in_source]
+name = Source Code Independence from Tests
+type = forbidden
+source_modules =
+    mcp_coder_utils
+forbidden_modules =
+    tests
+
+# -----------------------------------------------------------------------------
+# Contract: Leaf Library — No Internal mcp-coder Dependencies
+# -----------------------------------------------------------------------------
+# mcp_coder_utils is the leaf in the mcp-coder dependency graph. It must not
+# import from any sibling repo (mcp_coder, mcp_tools_py, mcp_workspace,
+# mcp_config). Doing so would create a cycle.
+# -----------------------------------------------------------------------------
+[importlinter:contract:leaf_library]
+name = Leaf Library — No Internal mcp-coder Dependencies
+type = forbidden
+source_modules =
+    mcp_coder_utils
+forbidden_modules =
+    mcp_coder
+    mcp_tools_py
+    mcp_workspace
+    mcp_config

@@ -1,0 +1,83 @@
+name: Python CI
+
+on:
+  push:
+    branches: [ "*" ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  # Matrix approach: Each check runs as independent job with individual pass/fail status
+  # fail-fast: false ensures all checks complete even if one fails
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        check:
+          - {name: "black", cmd: "black --version && black --check src tests"}
+          - {name: "isort", cmd: "isort --version && isort --check --profile=black --float-to-top src tests"}
+          - {name: "pylint", cmd: "pylint --version && pylint ./src ./tests"}
+          - {name: "ruff-docstrings", cmd: "ruff --version && ruff check src tests"}
+          - {name: "pytest", cmd: "pytest --version && pytest --junitxml=unit-tests.xml"}
+          - {name: "mypy", cmd: "mypy --version && mypy --strict src tests"}
+    name: ${{ matrix.check.name }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v6
+        with:
+          python-version: 3.11
+
+      - name: Install dependencies
+        run: uv pip install --system ".[dev]"
+
+      - name: Environment info
+        run: |
+          uname -a
+          python --version
+          uv --version
+          git --version
+
+      - name: Run ${{ matrix.check.name }}
+        run: ${{ matrix.check.cmd }}
+
+  # Architecture checks - only run on pull requests
+  architecture:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    strategy:
+      fail-fast: false
+      matrix:
+        check:
+          - {name: "import-linter", cmd: "lint-imports --version && lint-imports"}
+          - {name: "vulture", cmd: "vulture --version && vulture src tests vulture_whitelist.py --min-confidence 60"}
+    name: ${{ matrix.check.name }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v6
+        with:
+          python-version: 3.11
+
+      - name: Install dependencies
+        run: uv pip install --system ".[dev]"
+
+      - name: Environment info
+        run: |
+          uname -a
+          python --version
+          uv --version
+          git --version
+
+      - name: Run ${{ matrix.check.name }}
+        run: ${{ matrix.check.cmd }}
