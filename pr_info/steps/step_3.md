@@ -20,6 +20,10 @@ Copy `p_mcp_coder:tests/utils/test_subprocess_runner_real.py` and change:
 1. All imports → `mcp_coder_utils.subprocess_runner`
 2. All `patch()` paths → `mcp_coder_utils.subprocess_runner.*`
 
+**Important:** `test_empty_command_list` in the mcp_coder source expects `execute_subprocess([])` to return a `CommandResult` with `return_code == 1`. However, the canonical p_tools source raises `ValueError("Command cannot be empty")`. This test must be updated to use `pytest.raises(ValueError, match="Command cannot be empty")` instead of checking the return value.
+
+**Note:** The integration tests import internal symbols `get_python_isolation_env` and `is_python_command` which are not in `__all__`. This is acceptable for tests — Python does not enforce `__all__` for direct imports.
+
 These tests exercise real subprocess execution (no mocks) — they complement
 the mock-based unit tests from Step 1.
 
@@ -43,12 +47,16 @@ Remove the "Real modules land in Phase 2" paragraph — they have landed.
 
 ### 2. Add `__all__` export rule
 
+
 Add a new rule (rule 5) under **Architectural rules**:
 
 > **`__all__` discipline.** Only add a symbol to `__all__` when it has at least
 > one external consumer (or is required by a sibling module like
 > `subprocess_streaming`). Internal helpers stay unexported. Promote to `__all__`
 > when a second consumer appears.
+
+### 3. Update Tests section
+Update the "Tests" section to note that some tests exercise real subprocess execution (not purely mock-based), though no special markers or configuration are needed.
 
 ## HOW
 

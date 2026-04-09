@@ -36,5 +36,26 @@
 - summary.md: removed Blocker section and speculative vulture_whitelist.py
 - TASK_TRACKER.md: updated to 3 steps, removed BLOCKED annotations
 
+**Status**: Committed (2b2628b)
+
+## Round 2 — 2026-04-09
+**Findings**:
+- F1 (critical): test_empty_command_list expects CommandResult but canonical source raises ValueError — test will fail
+- F2 (critical): _run_heartbeat private import not documented in step 1
+- F3 (accept): test_check_tool_missing_found doesn't need assertion changes — step overstates edit
+- F4 (accept): Mixed patch styles need clarification (bare vs module-qualified)
+- F5 (accept): Integration tests import internal symbols not in __all__
+- F6 (accept): Architecture docs Tests section should mention real-subprocess tests
+- F7 (accept): Summary missing exact source paths for mcp_coder test files
+
+**Decisions**: All accepted — straightforward improvements, no user escalation needed.
+
+**User decisions**: None needed.
+
+**Changes**:
+- step_1.md: Added _run_heartbeat import note, corrected test_check_tool_missing_found (no changes needed), added patch style clarification
+- step_3.md: Added test_empty_command_list ValueError conflict note, internal symbol import note, architecture Tests section update instruction
+- summary.md: Added exact source paths for test files
+
 **Status**: Changes applied, pending commit
 

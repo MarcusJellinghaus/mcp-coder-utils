@@ -72,8 +72,11 @@ Copy `p_tools:tests/test_subprocess_runner.py` and change:
 
 1. **All imports** from `mcp_tools_py.utils.subprocess_runner` → `mcp_coder_utils.subprocess_runner`
 2. **All `patch()` paths** from `mcp_tools_py.utils.subprocess_runner.*` → `mcp_coder_utils.subprocess_runner.*`
-3. **Update `test_check_tool_missing_found`** — assert against the new generic message
-   (no `--python-executable` / `--venv-path` text)
+3. **`test_check_tool_missing_found`** — no assertion changes needed. The existing assertions (`result is not None`, `tool in result`) already pass with the new generic message format.
+
+**Note:** The test file imports the private function `_run_heartbeat` directly (used by `TestHeartbeat` class). This is intentional — it tests internal behavior. Update its import path like all others.
+
+**Patch paths:** Only module-qualified patches need updating (e.g., `mcp_tools_py.utils.subprocess_runner.subprocess.Popen` → `mcp_coder_utils.subprocess_runner.subprocess.Popen`). Bare patches like `patch("subprocess.Popen")` do not need changes.
 
 ## HOW
 

@@ -36,8 +36,8 @@ explicit `__all__` guidance — do not export functions with zero external consu
 | `src/mcp_coder_utils/subprocess_runner.py` | p_tools `subprocess_runner.py` | 3 edits: docstring, `check_tool_missing_error` msg, `prepare_env` in `__all__` |
 | `src/mcp_coder_utils/subprocess_streaming.py` | mcp_coder `subprocess_streaming.py` | Adjust import path only |
 | `tests/test_subprocess_runner.py` | p_tools `test_subprocess_runner.py` | Rewrite imports + mock patch paths |
-| `tests/test_subprocess_streaming.py` | mcp_coder streaming tests | Rewrite imports |
-| `tests/test_subprocess_runner_real.py` | mcp_coder integration tests | Rewrite imports |
+| `tests/test_subprocess_streaming.py` | p_mcp_coder:`tests/utils/test_subprocess_streaming.py` | Rewrite imports |
+| `tests/test_subprocess_runner_real.py` | p_mcp_coder:`tests/utils/test_subprocess_runner_real.py` | Rewrite imports |
 
 ## Files Modified
 
