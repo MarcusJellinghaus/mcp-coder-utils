@@ -24,6 +24,9 @@ dist/
 # Default log folder used by mcp servers
 /logs/
 
+# Log folder for LLM sessions etc
+/.mcp-coder/*
+
 # Cache files
 .pytest_cache/
 .mypy_cache/
@@ -33,6 +36,25 @@ checks_output.txt
 bash.exe.stackdump
 nul
 *.isorted
+
+# VSCodeClaude session files (auto-generated)
+.vscodeclaude_status.txt
+.vscodeclaude_analysis.json
+.vscodeclaude_start.bat
+.vscodeclaude_start.sh
+
+# MCP configuration files (may contain sensitive paths)
+.mcp.*.json
+
+# mcp-coder temp folder
+/.mcp-coder-tmp/
+
+# Transient workflow files
+pr_info/.commit_message.txt
+pr_info/.ci_problem_description.md
+
+# Import linter cache
+.import_linter_cache/
 
 # Lock files (regenerate with: uv sync)
 uv.lock
