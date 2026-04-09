@@ -41,6 +41,7 @@ consumed by `mcp-coder`, `mcp-tools-py`, `mcp-workspace`, and `mcp-config`.
 src/mcp_coder_utils/
     __init__.py
     py.typed
+    log_utils.py
     subprocess_runner.py
     subprocess_streaming.py
 ```
