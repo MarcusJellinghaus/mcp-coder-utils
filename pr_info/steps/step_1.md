@@ -63,7 +63,8 @@ def _redact_for_logging(params: RedactableDict, sensitive_fields: set[str]) -> R
    ```python
    # DELETE this block:
    for name in logging.Logger.manager.loggerDict:
-       logging.getLogger(name).setLevel(numeric_level)
+       logger = logging.getLogger(name)
+       logger.setLevel(numeric_level)
    ```
 5. **Add** `__all__` near the top:
    ```python
