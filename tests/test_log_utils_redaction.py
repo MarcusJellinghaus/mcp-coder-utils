@@ -165,7 +165,8 @@ class TestLogFunctionCallWithSensitiveFields:
             mock_get_logger.return_value = mock_logger
 
             @log_function_call(sensitive_fields=["token", "password"])
-            def auth_func(token: str, username: str) -> bool:
+            def auth_func(token: str, username: str) -> bool:  # noqa: vulture
+                _ = token, username  # consumed by decorator via inspect
                 return True
 
             auth_func(token="secret123", username="user")
