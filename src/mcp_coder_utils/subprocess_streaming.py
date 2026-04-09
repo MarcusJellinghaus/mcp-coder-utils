@@ -38,9 +38,11 @@ class StreamResult:
         self._result: CommandResult | None = None
 
     def __iter__(self) -> "StreamResult":
+        """Return the iterator object itself."""
         return self
 
     def __next__(self) -> str:
+        """Return the next stdout line from the stream."""
         return next(self._lines)
 
     @property

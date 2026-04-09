@@ -1,10 +1,5 @@
-Add integration tests and update architecture docs
+fix: add missing docstrings and document ValueError in raises section
 
-- Create tests/test_subprocess_runner_real.py with real subprocess
-  execution tests (no mocks) covering stdout/stderr capture, environment
-  isolation, timeout handling, cwd, stdin input, and command detection
-- Update docs/architecture/architecture.md:
-  - Replace placeholder package layout with actual modules
-  - Remove "Phase 2" paragraph (modules have landed)
-  - Add __all__ discipline as architectural rule 5
-  - Note that some tests exercise real subprocess execution
+- Add Returns section to format_command docstring (DOC201)
+- Document ValueError in execute_subprocess Raises section (DOC501)
+- Add docstrings to StreamResult.__iter__ and __next__ methods (D105)

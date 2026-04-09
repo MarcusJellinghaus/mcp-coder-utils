@@ -1,0 +1,7 @@
+The `ruff-docstrings` CI job failed with 4 ruff errors across two files: `src/mcp_coder_utils/subprocess_runner.py` and `src/mcp_coder_utils/subprocess_streaming.py`. Ruff version 0.15.9 enforces docstring completeness rules (DOC201, DOC501, D105) that the current code violates.
+
+In `subprocess_runner.py`, there are two issues. First, the `format_command` function (line 71) has a docstring that does not document its return value, triggering DOC201. The function returns a formatted string but the docstring lacks a "Returns" section. Second, the `execute_subprocess` function (line 611) raises `ValueError` on line 631 when the command list is empty, but the docstring's "Raises" section only lists `TypeError` and `CalledProcessError` — it is missing `ValueError`, triggering DOC501.
+
+In `subprocess_streaming.py`, the `StreamResult` class has two magic methods — `__iter__` (line 40) and `__next__` (line 43) — that are missing docstrings entirely, triggering D105. These are simple iterator protocol methods that need docstrings to satisfy the ruff D105 rule.
+
+To fix the CI failure, the following changes are needed: (1) add a "Returns" section to `format_command`'s docstring describing the truncated shell string, (2) add `ValueError` to the "Raises" section of `execute_subprocess`'s docstring, and (3) add docstrings to the `__iter__` and `__next__` methods in `StreamResult`. The `pylint` job also failed separately and may have overlapping or additional issues to address.

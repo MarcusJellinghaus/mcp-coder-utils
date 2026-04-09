@@ -73,6 +73,9 @@ def format_command(command: list[str]) -> str:
 
     Uses shlex.join() on Unix, subprocess.list2cmdline() on Windows.
     Truncates at 200 characters with '...' suffix.
+
+    Returns:
+        The formatted command string, truncated if longer than 200 characters.
     """
     if os.name == "nt":
         full = subprocess.list2cmdline(command)
@@ -622,6 +625,7 @@ def execute_subprocess(
 
     Raises:
         TypeError: If command is None.
+        ValueError: If command is empty.
         CalledProcessError: If check is True and the process returns non-zero exit code.
     """
     if command is None:
