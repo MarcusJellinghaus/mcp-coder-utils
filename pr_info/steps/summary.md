@@ -46,6 +46,7 @@ src/mcp_coder_utils/
 | **Create** | `src/mcp_coder_utils/redaction.py` |
 | **Modify** | `src/mcp_coder_utils/log_utils.py` |
 | **Create** | `tests/test_redaction.py` |
+| **Modify** | `tests/test_log_utils.py` |
 | **Delete** | `tests/test_log_utils_redaction.py` |
 
 ## Implementation Steps

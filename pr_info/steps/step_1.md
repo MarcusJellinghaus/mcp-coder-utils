@@ -4,7 +4,7 @@
 
 ## Objective
 
-Move existing redaction symbols from `log_utils.py` into a new `redaction.py` module. Rename `_redact_for_logging` → `redact_for_logging` (public API). Update all imports. Move existing tests.
+Move existing redaction symbols from `log_utils.py` into a new `redaction.py` module. Rename `_redact_for_logging` → `redact_for_logging` (public API). Update all imports. Split existing tests: move `TestRedactForLogging` and `TestRedactForLoggingTupleKeys` to `test_redaction.py`, move `TestLogFunctionCallWithSensitiveFields` to the existing `test_log_utils.py`.
 
 ## LLM Prompt
 
@@ -15,8 +15,9 @@ Move redaction symbols from log_utils.py to a new redaction.py module:
 - Move REDACTED_VALUE, RedactableDict, _redact_for_logging
 - Rename _redact_for_logging → redact_for_logging (public)
 - Update log_utils.py to import from redaction.py
-- Move tests from test_log_utils_redaction.py → test_redaction.py, update imports
-- Delete test_log_utils_redaction.py
+- Move TestRedactForLogging and TestRedactForLoggingTupleKeys from test_log_utils_redaction.py → test_redaction.py
+- Move TestLogFunctionCallWithSensitiveFields from test_log_utils_redaction.py → test_log_utils.py (it tests log_function_call which stays in log_utils.py)
+- Delete test_log_utils_redaction.py after both moves
 - Run all quality checks (pylint, pytest, mypy)
 ```
 
@@ -27,6 +28,7 @@ Move redaction symbols from log_utils.py to a new redaction.py module:
 | Create | `src/mcp_coder_utils/redaction.py` |
 | Modify | `src/mcp_coder_utils/log_utils.py` |
 | Create | `tests/test_redaction.py` |
+| Modify | `tests/test_log_utils.py` |
 | Delete | `tests/test_log_utils_redaction.py` |
 
 ## WHAT
@@ -50,7 +52,7 @@ def redact_for_logging(
 
 - Remove: `REDACTED_VALUE`, `RedactableDict`, `_redact_for_logging` definitions
 - Add: `from mcp_coder_utils.redaction import REDACTED_VALUE, RedactableDict, redact_for_logging`
-- Update two call sites: `_redact_for_logging(...)` → `redact_for_logging(...)`
+- Update three call sites: `_redact_for_logging(...)` → `redact_for_logging(...)`
 - `__all__` stays unchanged
 
 ## HOW
@@ -61,12 +63,13 @@ def redact_for_logging(
 ## ALGORITHM
 
 ```
-1. Create redaction.py with REDACTED_VALUE, RedactableDict, redact_for_logging (body copied from _redact_for_logging)
-2. In log_utils.py: remove the 3 definitions, add import from redaction
-3. In log_utils.py: replace _redact_for_logging → redact_for_logging (2 call sites in log_function_call)
-4. Copy test_log_utils_redaction.py → test_redaction.py, update imports to mcp_coder_utils.redaction, rename _redact_for_logging → redact_for_logging
-5. Delete test_log_utils_redaction.py
-6. Run pylint, pytest, mypy — all must pass
+1. Use `mcp__tools-py__move_symbol` to move `REDACTED_VALUE`, `RedactableDict`, and `_redact_for_logging` from `log_utils.py` to `redaction.py` (the tool updates imports automatically)
+2. In redaction.py: rename `_redact_for_logging` → `redact_for_logging` (public API)
+3. In log_utils.py: replace _redact_for_logging → redact_for_logging (3 call sites in log_utils.py)
+4. Move `TestRedactForLogging` and `TestRedactForLoggingTupleKeys` from test_log_utils_redaction.py → test_redaction.py, update imports to mcp_coder_utils.redaction, rename _redact_for_logging → redact_for_logging
+5. Move `TestLogFunctionCallWithSensitiveFields` from test_log_utils_redaction.py → tests/test_log_utils.py (it tests log_function_call which lives in log_utils.py), update imports as needed
+6. Delete test_log_utils_redaction.py after both moves
+7. Run pylint, pytest, mypy — all must pass
 ```
 
 ## DATA

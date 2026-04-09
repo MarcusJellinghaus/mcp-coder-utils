@@ -90,6 +90,8 @@ def redact_env_vars(env, extra_patterns=None):
 | `test_redact_env_vars_empty_input` | `{}` → `{}` |
 | `test_sensitive_key_patterns_contents` | Verify the frozenset contains exactly the 6 expected patterns |
 
+**Note:** Use `@pytest.mark.parametrize` where appropriate — e.g., grouping sensitive keys, case variants, safe keys, and false-positive keys into parameterized test cases.
+
 ## Commit message
 
 ```
