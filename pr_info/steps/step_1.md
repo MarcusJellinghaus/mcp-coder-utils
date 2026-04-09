@@ -1,19 +1,22 @@
-# Step 1: Create log_utils module + core tests
+# Step 1: Create log_utils module + all tests
 
-> **Context:** See [summary.md](summary.md) for full overview. This is Step 1 of 3.
+> **Context:** See [summary.md](summary.md) for full overview. This is Step 1 of 2.
 
 ## Prompt for LLM
 
 ```
 Implement Step 1 from pr_info/steps/step_1.md (see pr_info/steps/summary.md for context).
-Create the canonical log_utils.py module in mcp_coder_utils and its core test file.
-The source is mcp_coder's log_utils.py — obtain it from the user if not available as a reference project.
+Create the canonical log_utils.py module in mcp_coder_utils and all test files
+(log_utils.py, test_log_utils.py, test_log_utils_redaction.py).
+Read source files from reference project p_mcp_coder.
 ```
 
 ## Prerequisite
 
-Obtain the mcp_coder source file: `src/mcp_coder/utils/log_utils.py` and `tests/utils/test_log_utils.py`.
-These are NOT available as reference projects — ask the user to provide them.
+Read source files from reference project `p_mcp_coder` using `mcp__workspace__read_reference_file`:
+- `src/mcp_coder/utils/log_utils.py`
+- `tests/utils/test_log_utils.py`
+- `tests/utils/test_log_utils_redaction.py`
 
 ## WHERE
 
@@ -21,6 +24,7 @@ These are NOT available as reference projects — ask the user to provide them.
 |---|---|
 | Create | `src/mcp_coder_utils/log_utils.py` |
 | Create | `tests/test_log_utils.py` |
+| Create | `tests/test_log_utils_redaction.py` |
 
 ## WHAT — log_utils.py
 
@@ -29,9 +33,13 @@ Copy mcp_coder's `src/mcp_coder/utils/log_utils.py` with these adjustments:
 ### Functions / Classes (all from mcp_coder source)
 
 ```python
+# Module-level
+stdlogger = logging.getLogger(__name__)  # resolves to "mcp_coder_utils.log_utils"
+T = TypeVar("T")  # used by log_function_call overloads
+
 # Constants
 OUTPUT: int = 25  # Custom log level between INFO(20) and WARNING(30)
-REDACTED_VALUE: str = "***REDACTED***"
+REDACTED_VALUE: str = "***"
 STANDARD_LOG_FIELDS: frozenset[str]
 RedactableDict = dict[str | tuple[str, ...], object]  # type alias
 
@@ -49,12 +57,7 @@ def _redact_for_logging(params: RedactableDict, sensitive_fields: frozenset[str]
 ### Adjustments from mcp_coder original (6 changes)
 
 1. **Module docstring** → `"Shared logging configuration and utilities."`
-2. **Remove** third-party log suppression lines in `setup_logging`:
-   ```python
-   # DELETE these lines (suppress urllib3, github, httpx, httpcore):
-   for lib in ("urllib3", "github", "httpx", "httpcore"):
-       logging.getLogger(lib).setLevel(logging.WARNING)
-   ```
+2. **Remove** the four `logging.getLogger(...).setLevel(logging.WARNING)` calls for third-party libraries (urllib3, github, httpx, httpcore) near the end of `setup_logging`
 3. **Remove** the trailing `stdlogger.debug("Suppressing verbose logs...")` line
 4. **Remove** the "set all existing logger levels" loop:
    ```python
@@ -93,11 +96,34 @@ Copy mcp_coder's `tests/utils/test_log_utils.py` with import path changes:
 - `TestCleanFormatter` — bare CLI output formatting
 - `TestSetupLoggingFormatterSelection` — correct formatter chosen per config
 
+## WHAT — test_log_utils_redaction.py
+
+Copy mcp_coder's `tests/utils/test_log_utils_redaction.py` with import path changes:
+
+- `from mcp_coder.utils.log_utils import ...` → `from mcp_coder_utils.log_utils import ...`
+- Any patch targets: `mcp_coder.utils.log_utils.` → `mcp_coder_utils.log_utils.`
+
+### Expected test classes (from issue)
+
+- `TestRedactForLogging` — tests `_redact_for_logging` with various field types
+- `TestRedactForLoggingTupleKeys` — tests tuple-key redaction (nested field paths)
+- `TestLogFunctionCallWithSensitiveFields` — tests the `sensitive_fields` overload of `log_function_call`
+
+### Key imports needed
+
+```python
+from mcp_coder_utils.log_utils import (
+    REDACTED_VALUE,
+    _redact_for_logging,
+    log_function_call,
+)
+```
+
 ## HOW — Integration
 
 - Module uses `logging`, `structlog`, `pythonjsonlogger.json.JsonFormatter`
 - `OUTPUT` level registered via `logging.addLevelName(OUTPUT, "OUTPUT")`
-- `_is_testing_environment()` checks `"pytest" in sys.modules` or `_TESTING` env var
+- `_is_testing_environment()` detects test environments to avoid clearing pytest's logging handlers
 - `setup_logging` configures both stdlib logging and structlog globally
 - `log_function_call` is a decorator with `@overload` for optional `sensitive_fields`
 

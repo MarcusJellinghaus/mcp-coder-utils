@@ -47,9 +47,7 @@ Already in `pyproject.toml` — no changes needed:
 
 ## Prerequisite
 
-The mcp_coder repo is **not available as a reference project**. The implementer must either:
-1. Have the user provide `src/mcp_coder/utils/log_utils.py`, `tests/utils/test_log_utils.py`, and `tests/utils/test_log_utils_redaction.py` from mcp_coder
-2. Or reconstruct from the issue description + the two available server copies (p_tools, p_workspace)
+Source files are available via `mcp__workspace__read_reference_file` from reference project `p_mcp_coder`.
 
 ## Files Created / Modified
 
@@ -62,6 +60,5 @@ The mcp_coder repo is **not available as a reference project**. The implementer 
 
 ## Steps Overview
 
-1. **Step 1** — Create `log_utils.py` module + `test_log_utils.py` (core tests)
-2. **Step 2** — Add `test_log_utils_redaction.py` (redaction tests)
-3. **Step 3** — Update architecture documentation
+1. **Step 1** — Create `log_utils.py` module + all tests (`test_log_utils.py`, `test_log_utils_redaction.py`)
+2. **Step 2** — Update architecture documentation
