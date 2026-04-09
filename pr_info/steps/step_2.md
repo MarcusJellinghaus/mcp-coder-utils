@@ -17,7 +17,9 @@
 
 Copy `p_mcp_coder:src/mcp_coder/utils/subprocess_streaming.py` as-is, then:
 
-1. Change import from `mcp_coder.utils.subprocess_runner` → `mcp_coder_utils.subprocess_runner`
+1. The source uses a relative import `from .subprocess_runner import (...)`. Change it to
+   `from mcp_coder_utils.subprocess_runner import (...)` (absolute import within the new package).
+   Alternatively, keep it as a relative import — both work since the modules live in the same package.
 
 No other changes. The module contains:
 

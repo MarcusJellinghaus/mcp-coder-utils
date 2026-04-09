@@ -57,5 +57,18 @@
 - step_3.md: Added test_empty_command_list ValueError conflict note, internal symbol import note, architecture Tests section update instruction
 - summary.md: Added exact source paths for test files
 
+**Status**: Committed (a0dfc92)
+
+## Round 3 — 2026-04-09
+**Findings**:
+- F1 (low): Step 2 describes import as absolute but source actually uses relative import
+
+**Decisions**: Accept F1 — clarify import description.
+
+**User decisions**: None needed.
+
+**Changes**:
+- step_2.md: Clarified that source uses relative import, both relative and absolute work
+
 **Status**: Changes applied, pending commit
 
