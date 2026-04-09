@@ -1,6 +1,0 @@
-fix: add missing docstring sections to satisfy ruff DOC201/DOC501 rules
-
-Add Returns sections to five functions in log_utils.py (CleanFormatter.format,
-ExtraFieldsFormatter.format, _is_testing_environment, _redact_for_logging,
-log_function_call) and a Raises section to setup_logging to fix ruff
-docstring lint errors.
