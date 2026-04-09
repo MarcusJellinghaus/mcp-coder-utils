@@ -78,6 +78,10 @@ def stream_subprocess(
     Returns:
         A :class:`StreamResult` that yields ``str`` lines and exposes
         ``.result`` after iteration.
+
+    Raises:
+        TypeError: If command is None.
+        ValueError: If command is empty.
     """
     if command is None:
         raise TypeError("Command cannot be None")
