@@ -1,0 +1,125 @@
+[build-system]
+requires = ["setuptools>=61.0", "setuptools-scm>=8.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mcp-coder-utils"
+dynamic = ["version"]
+description = "Shared low-level Python helpers (subprocess, logging, fs) for the mcp-coder family of repos"
+authors = [
+    {name = "Marcus Jellinghaus", email = "Marcus@Jellinghaus.ch"}
+]
+readme = "README.md"
+requires-python = ">=3.11"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+]
+dependencies = [
+    "structlog>=23.2.0",
+    "python-json-logger>=3.3.0",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "pytest-xdist",
+]
+
+dev = [
+    "mcp-coder-utils[test]",
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "mypy>=1.0.0",
+    "pylint>=3.0.0",
+    "ruff>=0.9.0",
+    "vulture>=2.14",
+    "import-linter>=2.0",
+    "mcp-coder",
+    "mcp-tools-py",
+    "mcp-workspace",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/MarcusJellinghaus/mcp-coder-utils"
+"Repository" = "https://github.com/MarcusJellinghaus/mcp-coder-utils"
+"Bug Tracker" = "https://github.com/MarcusJellinghaus/mcp-coder-utils/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-dir]
+"" = "src"
+
+[tool.setuptools_scm]
+# Version is automatically determined from git tags
+# Tag format: v0.1.0 -> version 0.1.0
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = ["--strict-markers", "--tb=short", "-n", "auto"]
+
+[tool.black]
+line-length = 88
+target-version = ["py311"]
+
+[tool.isort]
+profile = "black"
+line_length = 88
+float_to_top = true
+
+[tool.pylint.messages_control]
+disable = [
+    "C",       # conventions — not enabled in this project
+    "R",       # refactor suggestions — not enabled in this project
+    "W1203",   # logging-fstring-interpolation
+    "W0621",   # redefined-outer-name — pytest fixture pattern
+    "W0511",   # fixme/TODO
+    "W0212",   # protected-access — legitimate in tests
+    "W0613",   # unused-argument — pytest fixtures
+    "W0611",   # unused-import — fixture imports
+    "W0718",   # broad-exception-caught
+]
+enable = ["R0401"]
+
+[tool.mypy]
+python_version = "3.11"
+disable_error_code = ["import-untyped"]
+
+[[tool.mypy.overrides]]
+module = ["pytest.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["tests.*"]
+disable_error_code = ["unreachable", "union-attr"]
+ignore_missing_imports = true
+
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+
+[tool.ruff.lint]
+preview = true
+select = ["D", "DOC"]
+ignore = [
+    "D104",  # missing docstring in __init__.py
+    "D107",  # missing docstring in __init__ method
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["D", "DOC"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.mcp-coder.install-from-github]
+# Installed WITHOUT deps (siblings — avoid downgrading shared deps)
+packages-no-deps = [
+    "mcp-coder @ git+https://github.com/MarcusJellinghaus/mcp_coder.git",
+    "mcp-tools-py @ git+https://github.com/MarcusJellinghaus/mcp-tools-py.git",
+    "mcp-workspace @ git+https://github.com/MarcusJellinghaus/mcp-workspace.git",
+]

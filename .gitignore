@@ -1,0 +1,41 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+.venv/
+venv/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+.ropeproject/
+
+# Local configuration
+.env
+
+# Package info
+*.egg-info/
+build/
+dist/
+
+# Default log folder used by mcp servers
+/logs/
+
+# Cache files
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+checks_output.txt
+bash.exe.stackdump
+nul
+*.isorted
+
+# Lock files (regenerate with: uv sync)
+uv.lock
+
+# Claude auto-memory files (session-local, not for version control)
+memory/
