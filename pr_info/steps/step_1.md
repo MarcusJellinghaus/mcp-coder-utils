@@ -41,7 +41,7 @@ T = TypeVar("T")  # used by log_function_call overloads
 OUTPUT: int = 25  # Custom log level between INFO(20) and WARNING(30)
 REDACTED_VALUE: str = "***"
 STANDARD_LOG_FIELDS: frozenset[str]
-RedactableDict = dict[str | tuple[str, ...], object]  # type alias
+RedactableDict = dict[str | tuple[str, ...], Any]  # type alias
 
 # Public API
 def setup_logging(log_level: str, log_file: Optional[str] = None) -> None: ...
@@ -51,7 +51,7 @@ def log_function_call(func): ...  # @overload with sensitive_fields variant
 class CleanFormatter(logging.Formatter): ...
 class ExtraFieldsFormatter(logging.Formatter): ...
 def _is_testing_environment() -> bool: ...
-def _redact_for_logging(params: RedactableDict, sensitive_fields: frozenset[str]) -> dict[str, object]: ...
+def _redact_for_logging(params: RedactableDict, sensitive_fields: set[str]) -> RedactableDict: ...
 ```
 
 ### Adjustments from mcp_coder original (6 changes)
@@ -131,7 +131,7 @@ from mcp_coder_utils.log_utils import (
 
 ```python
 # RedactableDict supports both simple keys and tuple keys for nested redaction
-RedactableDict = dict[str | tuple[str, ...], object]
+RedactableDict = dict[str | tuple[str, ...], Any]
 
 # STANDARD_LOG_FIELDS — fields that are part of standard log record, not "extra"
 STANDARD_LOG_FIELDS: frozenset[str]  # e.g. {"message", "levelname", "name", ...}

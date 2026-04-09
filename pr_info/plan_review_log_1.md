@@ -38,4 +38,25 @@
 - Updated TASK_TRACKER.md to reflect 2-step plan
 - Updated summary.md steps overview
 
+**Status**: Committed (d3cd693)
+
+## Round 2 — 2026-04-09
+
+**Findings**:
+- [Critical] `_redact_for_logging` signature still shows `frozenset[str]` — round 1 fix was not applied
+- [Critical] `_redact_for_logging` return type wrong (`dict[str, object]` vs `RedactableDict`)
+- [Improvement] `RedactableDict` value type should be `Any`, not `object`
+- [Observation] `REDACTED_VALUE` import in test key imports is a reasonable improvement over literal
+
+**Decisions**:
+- Accept #1-3 (factual corrections against actual source)
+- Skip #4 (observation, no action needed)
+
+**User decisions**: None needed.
+
+**Changes**:
+- Fixed `frozenset[str]` → `set[str]` in `_redact_for_logging` signature
+- Fixed return type to `RedactableDict`
+- Fixed `RedactableDict` value type from `object` to `Any` (2 occurrences)
+
 **Status**: Pending commit
