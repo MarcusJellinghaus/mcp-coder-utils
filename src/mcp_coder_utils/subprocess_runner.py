@@ -244,6 +244,66 @@ def prepare_env(
     return result
 
 
+def _kill_process(
+    process: subprocess.Popen[str], logger_instance: logging.Logger
+) -> None:
+    """Kill a subprocess and its children, platform-aware.
+
+    On Unix, sends SIGTERM to the process group, waits briefly, then
+    SIGKILL if the process is still alive.  On Windows, uses
+    ``taskkill /F /T``.  Falls back to ``process.kill()`` on failure.
+
+    Args:
+        process: The subprocess to kill.
+        logger_instance: Logger used for debug messages on fallback paths.
+    """
+    if os.name == "nt":
+        try:
+            subprocess.run(
+                ["taskkill", "/F", "/T", "/PID", str(process.pid)],
+                capture_output=True,
+                timeout=5,
+                check=False,
+            )
+        except (subprocess.SubprocessError, OSError) as exc:
+            logger_instance.debug(
+                "Taskkill failed, using fallback",
+                extra={"error": str(exc), "pid": process.pid},
+            )
+            process.kill()
+    else:
+        try:
+            if (
+                hasattr(os, "killpg")
+                and hasattr(os, "getpgid")
+                and hasattr(signal, "SIGTERM")
+                and hasattr(signal, "SIGKILL")
+            ):
+                os.killpg(  # type: ignore[attr-defined,unused-ignore]
+                    os.getpgid(process.pid),  # type: ignore[attr-defined,unused-ignore]
+                    signal.SIGTERM,  # type: ignore[attr-defined,unused-ignore]
+                )
+                time.sleep(0.5)
+                if process.poll() is None:
+                    os.killpg(  # type: ignore[attr-defined,unused-ignore]
+                        os.getpgid(process.pid),  # type: ignore[attr-defined,unused-ignore]
+                        signal.SIGKILL,  # type: ignore[attr-defined,unused-ignore]
+                    )
+            else:
+                process.kill()
+        except (OSError, ProcessLookupError, AttributeError) as exc:
+            logger_instance.debug(
+                "Process group kill failed, using fallback",
+                extra={"error": str(exc), "pid": process.pid},
+            )
+            process.kill()
+
+    try:
+        process.wait(timeout=2)
+    except subprocess.TimeoutExpired:
+        pass
+
+
 def _run_subprocess(  # pylint: disable=too-many-statements
     command: list[str], options: CommandOptions, use_stdio_isolation: bool = False
 ) -> subprocess.CompletedProcess[str]:
@@ -332,78 +392,7 @@ def _run_subprocess(  # pylint: disable=too-many-statements
                                     "cwd": options.cwd or "current",
                                 },
                             )
-
-                            # On Windows, use taskkill to kill process tree
-                            if os.name == "nt":
-                                try:
-                                    # Kill process tree on Windows
-                                    subprocess.run(
-                                        [
-                                            "taskkill",
-                                            "/F",
-                                            "/T",
-                                            "/PID",
-                                            str(popen_proc.pid),
-                                        ],
-                                        capture_output=True,
-                                        timeout=5,
-                                        check=False,
-                                    )
-                                except (
-                                    subprocess.SubprocessError,
-                                    subprocess.TimeoutExpired,
-                                    OSError,
-                                ) as e:
-                                    logger.debug(
-                                        "Taskkill failed, using fallback",
-                                        extra={"error": str(e), "pid": popen_proc.pid},
-                                    )
-                                    popen_proc.terminate()
-                                    time.sleep(0.5)
-                                    if popen_proc.poll() is None:
-                                        popen_proc.kill()
-                            else:
-                                # On Unix, kill the process group
-                                try:
-                                    if (
-                                        hasattr(os, "killpg")
-                                        and hasattr(os, "getpgid")
-                                        and hasattr(signal, "SIGTERM")
-                                        and hasattr(signal, "SIGKILL")
-                                    ):
-                                        os.killpg(  # type: ignore[attr-defined,unused-ignore]
-                                            os.getpgid(popen_proc.pid), signal.SIGTERM  # type: ignore[attr-defined,unused-ignore]
-                                        )
-                                        time.sleep(0.5)
-                                        if popen_proc.poll() is None:
-                                            os.killpg(  # type: ignore[attr-defined,unused-ignore]
-                                                os.getpgid(popen_proc.pid),  # type: ignore[attr-defined,unused-ignore]
-                                                signal.SIGKILL,  # type: ignore[attr-defined,unused-ignore]
-                                            )
-                                    else:
-                                        popen_proc.terminate()
-                                        time.sleep(0.5)
-                                        if popen_proc.poll() is None:
-                                            popen_proc.kill()
-                                except (
-                                    OSError,
-                                    ProcessLookupError,
-                                    AttributeError,
-                                ) as e:
-                                    logger.debug(
-                                        "Process group kill failed, using fallback",
-                                        extra={"error": str(e), "pid": popen_proc.pid},
-                                    )
-                                    popen_proc.terminate()
-                                    time.sleep(0.5)
-                                    if popen_proc.poll() is None:
-                                        popen_proc.kill()
-
-                            # Wait a bit for cleanup
-                            try:
-                                popen_proc.wait(timeout=2)
-                            except subprocess.TimeoutExpired:
-                                pass
+                            _kill_process(popen_proc, logger)
 
                         # Re-raise the timeout exception
                         raise
@@ -510,63 +499,7 @@ def _run_subprocess(  # pylint: disable=too-many-statements
                                 "cwd": options.cwd or "current",
                             },
                         )
-
-                        if os.name == "nt":
-                            # Windows: Kill process tree
-                            try:
-                                subprocess.run(
-                                    [
-                                        "taskkill",
-                                        "/F",
-                                        "/T",
-                                        "/PID",
-                                        str(popen_proc.pid),
-                                    ],
-                                    capture_output=True,
-                                    timeout=5,
-                                    check=False,
-                                )
-                            except (
-                                subprocess.SubprocessError,
-                                subprocess.TimeoutExpired,
-                                OSError,
-                            ) as e:
-                                logger.debug(
-                                    "Taskkill failed in regular execution",
-                                    extra={"error": str(e), "pid": popen_proc.pid},
-                                )
-                                popen_proc.kill()
-                        else:
-                            # Unix: Kill process group
-                            try:
-                                if (
-                                    hasattr(os, "killpg")
-                                    and hasattr(os, "getpgid")
-                                    and hasattr(signal, "SIGTERM")
-                                    and hasattr(signal, "SIGKILL")
-                                ):
-                                    os.killpg(  # type: ignore[attr-defined,unused-ignore]
-                                        os.getpgid(popen_proc.pid), signal.SIGTERM  # type: ignore[attr-defined,unused-ignore]
-                                    )
-                                    time.sleep(0.5)
-                                    if popen_proc.poll() is None:
-                                        os.killpg(  # type: ignore[attr-defined,unused-ignore]
-                                            os.getpgid(popen_proc.pid), signal.SIGKILL  # type: ignore[attr-defined,unused-ignore]
-                                        )
-                                else:
-                                    popen_proc.kill()
-                            except (OSError, ProcessLookupError, AttributeError) as e:
-                                logger.debug(
-                                    "Process group kill failed in regular execution",
-                                    extra={"error": str(e), "pid": popen_proc.pid},
-                                )
-                                popen_proc.kill()
-
-                        # Wait for cleanup
-                        try:
-                            popen_proc.wait(timeout=2)
-                        except subprocess.TimeoutExpired:
-                            pass
+                        _kill_process(popen_proc, logger)
                     raise
             else:
                 # No output capture needed

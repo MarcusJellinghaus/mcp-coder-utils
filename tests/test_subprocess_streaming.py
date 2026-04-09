@@ -7,7 +7,23 @@ CI runners.
 
 import sys
 
+import pytest
+
 from mcp_coder_utils.subprocess_streaming import StreamResult, stream_subprocess
+
+
+class TestStreamSubprocessValidation:
+    """Tests for input validation in stream_subprocess."""
+
+    def test_stream_subprocess_none_command_raises_type_error(self) -> None:
+        """Passing None as command should raise TypeError."""
+        with pytest.raises(TypeError, match="Command cannot be None"):
+            stream_subprocess(None)  # type: ignore[arg-type]
+
+    def test_stream_subprocess_empty_command_raises_value_error(self) -> None:
+        """Passing an empty list as command should raise ValueError."""
+        with pytest.raises(ValueError, match="Command cannot be empty"):
+            stream_subprocess([])
 
 
 class TestStreamInactivityWatchdog:

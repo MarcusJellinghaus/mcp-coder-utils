@@ -6,7 +6,6 @@ with an optional inactivity watchdog that kills hung processes.
 
 import logging
 import os
-import signal
 import subprocess
 import threading
 import time
@@ -15,6 +14,7 @@ from collections.abc import Generator
 from mcp_coder_utils.subprocess_runner import (
     CommandOptions,
     CommandResult,
+    _kill_process,
     prepare_env,
 )
 
@@ -57,55 +57,6 @@ class StreamResult:
         return self._result
 
 
-def _kill_process(process: subprocess.Popen[str]) -> None:
-    """Kill a subprocess and its children, platform-aware."""
-    if os.name == "nt":
-        try:
-            subprocess.run(
-                ["taskkill", "/F", "/T", "/PID", str(process.pid)],
-                capture_output=True,
-                timeout=5,
-                check=False,
-            )
-        except (subprocess.SubprocessError, OSError) as exc:
-            logger.debug(
-                "Taskkill failed, using fallback",
-                extra={"error": str(exc), "pid": process.pid},
-            )
-            process.kill()
-    else:
-        try:
-            if (
-                hasattr(os, "killpg")
-                and hasattr(os, "getpgid")
-                and hasattr(signal, "SIGTERM")
-                and hasattr(signal, "SIGKILL")
-            ):
-                os.killpg(  # type: ignore[attr-defined,unused-ignore]
-                    os.getpgid(process.pid),  # type: ignore[attr-defined,unused-ignore]
-                    signal.SIGTERM,  # type: ignore[attr-defined,unused-ignore]
-                )
-                time.sleep(0.5)
-                if process.poll() is None:
-                    os.killpg(  # type: ignore[attr-defined,unused-ignore]
-                        os.getpgid(process.pid),  # type: ignore[attr-defined,unused-ignore]
-                        signal.SIGKILL,  # type: ignore[attr-defined,unused-ignore]
-                    )
-            else:
-                process.kill()
-        except (OSError, ProcessLookupError, AttributeError) as exc:
-            logger.debug(
-                "Process group kill failed, using fallback",
-                extra={"error": str(exc), "pid": process.pid},
-            )
-            process.kill()
-
-    try:
-        process.wait(timeout=2)
-    except subprocess.TimeoutExpired:
-        pass
-
-
 def stream_subprocess(
     command: list[str],
     options: CommandOptions | None = None,
@@ -128,6 +79,11 @@ def stream_subprocess(
         A :class:`StreamResult` that yields ``str`` lines and exposes
         ``.result`` after iteration.
     """
+    if command is None:
+        raise TypeError("Command cannot be None")
+    if not command:
+        raise ValueError("Command cannot be empty")
+
     if options is None:
         options = CommandOptions()
 
@@ -165,9 +121,20 @@ def stream_subprocess(
                             "inactivity_timeout_seconds": inactivity_timeout_seconds,
                         },
                     )
-                    _kill_process(process)
+                    _kill_process(process, logger)
                     return
                 stop_watchdog.wait(0.5)
+
+        # Collect stderr in a background thread to avoid pipe-buffer deadlock
+        stderr_chunks: list[str] = []
+
+        def _drain_stderr() -> None:
+            assert process.stderr is not None
+            for line in process.stderr:
+                stderr_chunks.append(line)
+
+        stderr_thread = threading.Thread(target=_drain_stderr, daemon=True)
+        stderr_thread.start()
 
         watchdog_thread: threading.Thread | None = None
         if inactivity_timeout_seconds is not None:
@@ -186,13 +153,9 @@ def stream_subprocess(
             stop_watchdog.set()
             if watchdog_thread is not None:
                 watchdog_thread.join(timeout=2)
+            stderr_thread.join(timeout=5.0)
 
-            stderr = ""
-            if process.stderr:
-                try:
-                    stderr = process.stderr.read()
-                except (OSError, ValueError):
-                    pass
+            stderr = "".join(stderr_chunks)
 
             execution_time_ms = int((time.time() - start_time) * 1000)
 
