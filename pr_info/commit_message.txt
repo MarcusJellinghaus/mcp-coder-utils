@@ -1,0 +1,13 @@
+feat: add subprocess_runner module to mcp-coder-utils
+
+Copy subprocess_runner from mcp_tools_py into mcp_coder_utils with
+three targeted edits:
+- Generalize module docstring (remove MCP server framing)
+- Simplify check_tool_missing_error message (drop CLI flag hints)
+- Export prepare_env in __all__ (needed by subprocess_streaming)
+
+Add comprehensive unit tests with updated import paths.
+All public API symbols preserved: CommandResult, CommandOptions,
+execute_subprocess, execute_command, launch_process, format_command,
+prepare_env, check_tool_missing_error, truncate_stderr, and
+re-exported subprocess exceptions.
