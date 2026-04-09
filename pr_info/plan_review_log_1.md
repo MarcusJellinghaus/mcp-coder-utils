@@ -1,0 +1,40 @@
+# Plan Review Log — Run 1
+
+**Issue:** #1 — Extract subprocess_runner + subprocess_streaming
+**Branch:** 1-extract-subprocess-runner-subprocess-streaming
+**Date:** 2026-04-09
+**Reviewer:** Supervisor agent
+
+## Round 1 — 2026-04-09
+**Findings**:
+- F1 (critical): p_mcp_coder IS available as reference project — all BLOCKED markers are incorrect
+- F2 (accept): Step 3 listed wrong test class names (claimed TestStreamSubprocess etc., actual is TestStreamInactivityWatchdog)
+- F3 (accept): Step 3 missing exact source path for streaming tests
+- F4 (accept): Step 4 missing exact source path for integration tests
+- F5 (accept): Streaming tests are real-process, not mock-based — should note timing sensitivity
+- F6 (accept): Docs-only step 2 violates "every step must have tangible results" — merge into last code step
+- F7 (accept): Package layout in step 2 references subprocess_streaming.py before it exists
+- F8 (accept): Speculative vulture_whitelist.py entry in summary
+- F9-F12 (skip): Minor/pre-existing/acceptable as-is
+
+**Decisions**:
+- F1: Accept — remove all BLOCKER sections (critical, factually wrong)
+- F2: Accept — fix test class names to match actual source
+- F3-F4: Accept — add exact source paths
+- F5: Accept — add timing sensitivity note
+- F6-F7: Accept — restructure from 4 steps to 3: merge docs (old step 2) + integration tests (old step 4) into new step 3
+- F8: Accept — remove speculative vulture entry
+- F9-F12: Skip
+
+**User decisions**: None needed — all findings were straightforward improvements.
+
+**Changes**:
+- Restructured plan from 4 steps to 3 steps
+- step_2.md: rewritten (was step 3 — streaming module), fixed test names, added source paths, removed blocker
+- step_3.md: rewritten (merged old step 2 docs + old step 4 integration tests), removed blocker
+- step_4.md: deleted (merged into step 3)
+- summary.md: removed Blocker section and speculative vulture_whitelist.py
+- TASK_TRACKER.md: updated to 3 steps, removed BLOCKED annotations
+
+**Status**: Changes applied, pending commit
+

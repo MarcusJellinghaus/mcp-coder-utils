@@ -1,46 +1,57 @@
-# Step 2: Update architecture docs
+# Step 2: subprocess_streaming module + unit tests
 
 ## LLM Prompt
 
-> Read `pr_info/steps/summary.md` for context. Implement Step 2: update
-> `docs/architecture/architecture.md` to reflect the new modules and add
-> explicit `__all__` export guidance. Run all checks.
+> Read `pr_info/steps/summary.md` for context. Implement Step 2: copy
+> `subprocess_streaming.py` from mcp_coder into mcp-coder-utils and bring
+> its unit tests. Adjust import paths. Run all checks.
 
 ## WHERE
 
-- **Modify:** `docs/architecture/architecture.md`
+- **Create:** `src/mcp_coder_utils/subprocess_streaming.py`
+- **Create:** `tests/test_subprocess_streaming.py`
+- **Source (module):** `p_mcp_coder:src/mcp_coder/utils/subprocess_streaming.py`
+- **Source (tests):** `p_mcp_coder:tests/utils/test_subprocess_streaming.py`
 
-## WHAT
+## WHAT — Source module
 
-Two changes to the architecture doc:
+Copy `p_mcp_coder:src/mcp_coder/utils/subprocess_streaming.py` as-is, then:
 
-### 1. Update package layout section
+1. Change import from `mcp_coder.utils.subprocess_runner` → `mcp_coder_utils.subprocess_runner`
 
-Replace the current layout block with:
+No other changes. The module contains:
 
-```
-src/mcp_coder_utils/
-    __init__.py
-    py.typed
-    subprocess_runner.py
-    subprocess_streaming.py
-```
+| Symbol | Type | Notes |
+|---|---|---|
+| `StreamResult` | class | Iterator wrapper with `.result` property |
+| `stream_subprocess` | generator | Real-time stdout streaming with inactivity watchdog |
 
-Remove the "Real modules land in Phase 2" paragraph — they have landed.
+## WHAT — Tests
 
-### 2. Add `__all__` export rule
+Copy `p_mcp_coder:tests/utils/test_subprocess_streaming.py` and change:
 
-Add a new rule (rule 5) under **Architectural rules**:
+1. All imports → `mcp_coder_utils.subprocess_streaming` / `mcp_coder_utils.subprocess_runner`
+2. All `patch()` paths → `mcp_coder_utils.*`
 
-> **`__all__` discipline.** Only add a symbol to `__all__` when it has at least
-> one external consumer (or is required by a sibling module like
-> `subprocess_streaming`). Internal helpers stay unexported. Promote to `__all__`
-> when a second consumer appears.
+The test file contains a single class `TestStreamInactivityWatchdog` with three
+methods:
+
+- `test_stream_inactivity_timeout_kills_process`
+- `test_stream_active_process_no_timeout`
+- `test_stream_subprocess_basic`
+
+**Note:** These are real-process tests, not mock-based. They launch
+`sys.executable` and use wall-clock timeouts, so they may have timing
+sensitivity on slow CI runners.
 
 ## HOW
 
-Pure documentation change. No code changes.
+- `subprocess_streaming` imports `CommandOptions`, `CommandResult`, `prepare_env`
+  from `subprocess_runner` (same package — `prepare_env` was added to `__all__`
+  in Step 1 for this reason)
+- Stdlib only, no new dependencies
 
 ## Verification
 
-- All quality checks still pass (no code changed)
+- `pylint`, `mypy`, `pytest -n auto` all pass
+- `lint-imports` — no forbidden imports

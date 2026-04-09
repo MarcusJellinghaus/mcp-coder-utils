@@ -44,14 +44,5 @@ explicit `__all__` guidance — do not export functions with zero external consu
 | File | Change |
 |---|---|
 | `docs/architecture/architecture.md` | Add `__all__` export guidance, update package layout |
-| `vulture_whitelist.py` | Add any vulture false positives if needed |
 
-## Blocker
 
-The `subprocess_streaming.py` source and its tests live in mcp_coder, which is
-**not available** as a reference project. Steps 3–4 require access to:
-- `src/mcp_coder/utils/subprocess_streaming.py`
-- Streaming tests from mcp_coder
-- `tests/test_subprocess_runner_real.py` from mcp_coder
-
-Steps 1–2 can proceed immediately using p_tools as reference.

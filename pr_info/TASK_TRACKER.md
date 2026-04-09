@@ -22,8 +22,7 @@ This tracks **Feature Implementation** consisting of multiple **Tasks**.
 ## Tasks
 
 - [ ] [Step 1: subprocess_runner module + unit tests](steps/step_1.md)
-- [ ] [Step 2: Update architecture docs](steps/step_2.md)
-- [ ] [Step 3: subprocess_streaming module + unit tests](steps/step_3.md) — **BLOCKED** (needs mcp_coder ref)
-- [ ] [Step 4: Integration tests](steps/step_4.md) — **BLOCKED** (needs mcp_coder ref)
+- [ ] [Step 2: subprocess_streaming module + unit tests](steps/step_2.md)
+- [ ] [Step 3: Integration tests + architecture docs](steps/step_3.md)
 
 ## Pull Request
