@@ -62,7 +62,11 @@ class CleanFormatter(logging.Formatter):
     """Bare CLI output formatter — message only, no timestamp or level."""
 
     def format(self, record: logging.LogRecord) -> str:
-        """Format the log record as a plain message string."""
+        """Format the log record as a plain message string.
+
+        Returns:
+            The formatted message string.
+        """
         return record.getMessage()
 
 
@@ -70,7 +74,11 @@ class ExtraFieldsFormatter(logging.Formatter):
     """Formatter that appends extra fields to the log line."""
 
     def format(self, record: logging.LogRecord) -> str:
-        """Format the log record with any extra fields appended."""
+        """Format the log record with any extra fields appended.
+
+        Returns:
+            The formatted log string, with extra fields appended if present.
+        """
         base = super().format(record)
         extras = {
             k: v
@@ -86,6 +94,9 @@ def _is_testing_environment() -> bool:
     """Detect if we are running inside a test framework.
 
     Prevents clearing pytest's logging capture handlers.
+
+    Returns:
+        True if running inside a test framework, False otherwise.
     """
     # Check for pytest
     try:
@@ -107,6 +118,9 @@ def setup_logging(log_level: str, log_file: Optional[str] = None) -> None:
 
     Configures structlog globally. Call once at startup;
     repeated calls override the structlog configuration.
+
+    Raises:
+        ValueError: If *log_level* is not a valid logging level name.
     """
     numeric_level = getattr(logging, log_level.upper(), None)
     if not isinstance(numeric_level, int):
@@ -173,6 +187,9 @@ def _redact_for_logging(
     """Replace values of *sensitive_fields* with ``REDACTED_VALUE``.
 
     Supports both simple string keys and tuple keys (for nested paths).
+
+    Returns:
+        A new dictionary with sensitive field values replaced by ``REDACTED_VALUE``.
     """
     redacted: RedactableDict = {}
     for key, value in params.items():
@@ -208,6 +225,9 @@ def log_function_call(
 
     Can be used bare (``@log_function_call``) or with sensitive-field
     redaction (``@log_function_call(sensitive_fields={"token"})``).
+
+    Returns:
+        The decorated function, or a decorator if called with arguments.
     """
 
     def decorator(fn: Callable[..., T]) -> Callable[..., T]:

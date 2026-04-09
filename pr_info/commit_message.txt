@@ -1,4 +1,6 @@
-docs: add log_utils.py to architecture package layout
+fix: add missing docstring sections to satisfy ruff DOC201/DOC501 rules
 
-Update docs/architecture/architecture.md to include log_utils.py
-in the package layout section, maintaining alphabetical order.
+Add Returns sections to five functions in log_utils.py (CleanFormatter.format,
+ExtraFieldsFormatter.format, _is_testing_environment, _redact_for_logging,
+log_function_call) and a Raises section to setup_logging to fix ruff
+docstring lint errors.
