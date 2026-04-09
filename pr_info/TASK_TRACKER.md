@@ -23,6 +23,6 @@ This tracks **Feature Implementation** consisting of multiple **Tasks**.
 
 - [x] [Step 1: subprocess_runner module + unit tests](steps/step_1.md)
 - [x] [Step 2: subprocess_streaming module + unit tests](steps/step_2.md)
-- [ ] [Step 3: Integration tests + architecture docs](steps/step_3.md)
+- [x] [Step 3: Integration tests + architecture docs](steps/step_3.md)
 
 ## Pull Request

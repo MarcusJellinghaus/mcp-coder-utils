@@ -1,13 +1,10 @@
-feat: add subprocess_streaming module with inactivity watchdog
+Add integration tests and update architecture docs
 
-Add subprocess_streaming.py with StreamResult iterator wrapper and
-stream_subprocess generator for real-time stdout line streaming.
-Includes an inactivity watchdog that kills hung processes after a
-configurable timeout.
-
-- StreamResult: iterator with .result property for final CommandResult
-- stream_subprocess: generator yielding stdout lines with optional
-  inactivity watchdog using a background thread
-- Platform-aware process killing (taskkill on Windows, killpg on Unix)
-- 3 unit tests covering basic streaming, active process no-timeout,
-  and inactivity timeout kill scenarios
+- Create tests/test_subprocess_runner_real.py with real subprocess
+  execution tests (no mocks) covering stdout/stderr capture, environment
+  isolation, timeout handling, cwd, stdin input, and command detection
+- Update docs/architecture/architecture.md:
+  - Replace placeholder package layout with actual modules
+  - Remove "Phase 2" paragraph (modules have landed)
+  - Add __all__ discipline as architectural rule 5
+  - Note that some tests exercise real subprocess execution
