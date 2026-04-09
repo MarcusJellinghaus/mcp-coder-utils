@@ -1,141 +1,247 @@
-"""Tests for log_utils redaction functionality."""
+"""Tests for _redact_for_logging and log_function_call sensitive_fields."""
 
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from mcp_coder_utils.log_utils import (
-    REDACTED_VALUE,
+    RedactableDict,
     _redact_for_logging,
     log_function_call,
 )
 
 
 class TestRedactForLogging:
-    """Tests _redact_for_logging with various field types."""
+    """Tests for the _redact_for_logging helper function."""
 
-    def test_redact_sensitive_field(self) -> None:
-        """Sensitive fields are replaced with REDACTED_VALUE."""
-        params = {"username": "alice", "password": "secret123"}
-        result = _redact_for_logging(params, {"password"})
-        assert result["username"] == "alice"
-        assert result["password"] == REDACTED_VALUE
+    def test_redact_flat_dict(self) -> None:
+        """Test redaction of flat dictionary."""
+        data: RedactableDict = {
+            "token": "secret123",
+            "username": "user",
+        }
+        result = _redact_for_logging(data, {"token"})
 
-    def test_redact_no_sensitive_fields(self) -> None:
-        """Without sensitive fields, all values are preserved."""
-        params = {"name": "alice", "age": 30}
-        result = _redact_for_logging(params, set())
-        assert result == params
+        assert result["token"] == "***"
+        assert result["username"] == "user"
+        # Original should be unchanged
+        assert data["token"] == "secret123"
 
-    def test_redact_all_sensitive(self) -> None:
-        """All fields can be redacted."""
-        params = {"token": "abc", "secret": "xyz"}
-        result = _redact_for_logging(params, {"token", "secret"})
-        assert result["token"] == REDACTED_VALUE
-        assert result["secret"] == REDACTED_VALUE
+    def test_redact_nested_dict(self) -> None:
+        """Test redaction of nested dictionary."""
+        data: RedactableDict = {"outer": {"token": "secret", "safe": "visible"}}
+        result = _redact_for_logging(data, {"token"})
 
-    def test_redact_empty_params(self) -> None:
-        """Empty params returns empty dict."""
-        result = _redact_for_logging({}, {"password"})
-        assert result == {}
+        assert result["outer"]["token"] == "***"
+        assert result["outer"]["safe"] == "visible"
+        # Original should be unchanged
+        assert data["outer"]["token"] == "secret"
 
-    def test_redact_missing_sensitive_field(self) -> None:
-        """Sensitive fields not in params are ignored."""
-        params = {"name": "alice"}
-        result = _redact_for_logging(params, {"password"})
-        assert result == {"name": "alice"}
+    def test_redact_deeply_nested_dict(self) -> None:
+        """Test redaction of deeply nested dictionary."""
+        data: RedactableDict = {
+            "github": {"token": "ghp_xxx"},
+            "jenkins": {"api_token": "jenkins_xxx", "url": "http://example.com"},
+        }
+        result = _redact_for_logging(data, {"token", "api_token"})
 
-    def test_redact_preserves_non_string_values(self) -> None:
-        """Non-string values are preserved for non-sensitive keys."""
-        params = {"count": 42, "token": "secret"}
-        result = _redact_for_logging(params, {"token"})
-        assert result["count"] == 42
-        assert result["token"] == REDACTED_VALUE
+        assert result["github"]["token"] == "***"
+        assert result["jenkins"]["api_token"] == "***"
+        assert result["jenkins"]["url"] == "http://example.com"
+        # Original should be unchanged
+        assert data["github"]["token"] == "ghp_xxx"
+        assert data["jenkins"]["api_token"] == "jenkins_xxx"
+
+    def test_redact_empty_sensitive_fields(self) -> None:
+        """Test with empty sensitive_fields set."""
+        data: RedactableDict = {"token": "secret", "name": "test"}
+        result = _redact_for_logging(data, set())
+
+        assert result["token"] == "secret"
+        assert result["name"] == "test"
+
+    def test_redact_non_matching_fields(self) -> None:
+        """Test when no fields match sensitive_fields."""
+        data: RedactableDict = {"name": "test", "value": 123}
+        result = _redact_for_logging(data, {"token", "password"})
+
+        assert result["name"] == "test"
+        assert result["value"] == 123
 
 
 class TestRedactForLoggingTupleKeys:
-    """Tests tuple-key redaction (nested field paths)."""
+    """Tests for _redact_for_logging with tuple dictionary keys.
 
-    def test_tuple_key_redacted_when_part_matches(self) -> None:
-        """Tuple key is redacted if any component matches a sensitive field."""
-        params = {("auth", "token"): "secret_value", "name": "alice"}
-        result = _redact_for_logging(params, {"token"})
-        assert result[("auth", "token")] == REDACTED_VALUE
-        assert result["name"] == "alice"
+    Issue #327: get_config_values() returns dicts with tuple keys like
+    ('github', 'token'). The redaction should check the last element
+    of tuple keys against sensitive_fields.
+    """
 
-    def test_tuple_key_not_redacted_when_no_match(self) -> None:
-        """Tuple key is preserved if no component matches."""
-        params = {("user", "name"): "alice"}
-        result = _redact_for_logging(params, {"password"})
-        assert result[("user", "name")] == "alice"
-
-    def test_tuple_key_first_component_matches(self) -> None:
-        """Tuple key redacted when first component is sensitive."""
-        params = {("password", "hash"): "abc123"}
-        result = _redact_for_logging(params, {"password"})
-        assert result[("password", "hash")] == REDACTED_VALUE
-
-    def test_mixed_tuple_and_string_keys(self) -> None:
-        """Mixed tuple and string keys are handled correctly."""
-        params = {
-            "username": "alice",
-            "password": "secret",
-            ("api", "key"): "my-key",
+    def test_redact_tuple_key_matches_last_element(self) -> None:
+        """Test that tuple keys are redacted when last element matches sensitive field."""
+        data: RedactableDict = {
+            ("github", "token"): "ghp_secret123",
+            ("user", "name"): "john",
         }
-        result = _redact_for_logging(params, {"password", "key"})
-        assert result["username"] == "alice"
-        assert result["password"] == REDACTED_VALUE
-        assert result[("api", "key")] == REDACTED_VALUE
+        result = _redact_for_logging(data, {"token"})
+
+        assert result[("github", "token")] == "***"
+        assert result[("user", "name")] == "john"
+        # Original unchanged
+        assert data[("github", "token")] == "ghp_secret123"
+
+    def test_redact_mixed_string_and_tuple_keys(self) -> None:
+        """Test redaction works with both string and tuple keys in same dict."""
+        data: RedactableDict = {
+            "token": "direct_secret",
+            ("github", "token"): "tuple_secret",
+            "username": "user",
+        }
+        result = _redact_for_logging(data, {"token"})
+
+        assert result["token"] == "***"
+        assert result[("github", "token")] == "***"
+        assert result["username"] == "user"
+
+    def test_redact_tuple_key_no_match(self) -> None:
+        """Test that tuple keys not matching sensitive fields are unchanged."""
+        data: RedactableDict = {
+            ("github", "username"): "user",
+            ("jenkins", "url"): "http://example.com",
+        }
+        result = _redact_for_logging(data, {"token", "api_token"})
+
+        assert result[("github", "username")] == "user"
+        assert result[("jenkins", "url")] == "http://example.com"
+
+    def test_redact_empty_tuple_key_unchanged(self) -> None:
+        """Test that empty tuple keys are handled safely (no crash, no match)."""
+        data: RedactableDict = {
+            (): "empty_tuple_value",
+            ("normal", "key"): "normal_value",
+        }
+        result = _redact_for_logging(data, {"token"})
+
+        # Empty tuple should not crash and value should be unchanged
+        assert result[()] == "empty_tuple_value"
+        assert result[("normal", "key")] == "normal_value"
 
 
 class TestLogFunctionCallWithSensitiveFields:
-    """Tests the sensitive_fields overload of log_function_call."""
+    """Tests for log_function_call decorator with sensitive_fields parameter."""
 
-    @patch("mcp_coder_utils.log_utils.stdlogger")
-    def test_sensitive_fields_redacted_in_log(self, mock_stdlogger: MagicMock) -> None:
-        """Sensitive fields are redacted in log output."""
+    def test_log_function_call_without_sensitive_fields(self) -> None:
+        """Test that decorator works without sensitive_fields (backward compatible)."""
+        with patch("logging.getLogger") as mock_get_logger:
+            mock_logger = MagicMock()
+            mock_get_logger.return_value = mock_logger
 
-        @log_function_call(sensitive_fields={"token"})
-        def auth_func(user: str, token: str) -> str:
-            return f"auth:{user}"
+            @log_function_call
+            def simple_func(x: int) -> int:
+                return x * 2
 
-        result = auth_func("alice", "secret-token-123")
+            result = simple_func(5)
+            assert result == 10
+            assert mock_logger.debug.call_count == 2
 
-        assert result == "auth:alice"
-        assert mock_stdlogger.debug.call_count == 2
+    def test_log_function_call_with_parentheses_no_args(self) -> None:
+        """Test that decorator works with empty parentheses."""
+        with patch("logging.getLogger") as mock_get_logger:
+            mock_logger = MagicMock()
+            mock_get_logger.return_value = mock_logger
 
-        # Check that the logged parameters contain the redacted value
-        first_call = mock_stdlogger.debug.call_args_list[0]
-        params_json = first_call[0][2]
-        assert REDACTED_VALUE in params_json
-        assert "secret-token-123" not in params_json
+            @log_function_call()
+            def simple_func(x: int) -> int:
+                return x * 2
 
-    @patch("mcp_coder_utils.log_utils.stdlogger")
-    def test_sensitive_fields_empty_set(self, mock_stdlogger: MagicMock) -> None:
-        """Empty sensitive_fields set does not redact anything."""
+            result: int = simple_func(5)
+            assert result == 10
+            assert mock_logger.debug.call_count == 2
 
-        @log_function_call(sensitive_fields=set())
-        def normal_func(data: str) -> str:
-            return data
+    def test_log_function_call_redacts_sensitive_params(self) -> None:
+        """Test that sensitive parameter values are redacted in logs."""
+        with patch("logging.getLogger") as mock_get_logger:
+            mock_logger = MagicMock()
+            mock_get_logger.return_value = mock_logger
 
-        result = normal_func("visible")
+            @log_function_call(sensitive_fields=["token", "password"])
+            def auth_func(token: str, username: str) -> bool:
+                return True
 
-        assert result == "visible"
-        first_call = mock_stdlogger.debug.call_args_list[0]
-        params_json = first_call[0][2]
-        assert "visible" in params_json
+            auth_func(token="secret123", username="user")
 
-    @patch("mcp_coder_utils.log_utils.stdlogger")
-    def test_decorator_without_sensitive_fields(
-        self, mock_stdlogger: MagicMock
-    ) -> None:
-        """Bare decorator (no sensitive_fields) does not redact."""
+            # Verify log contains "***" for token, but "user" for username
+            first_call = mock_logger.debug.call_args_list[0]
+            log_params = first_call[0][2]  # JSON string of parameters
 
-        @log_function_call
-        def plain_func(secret: str) -> str:
-            return secret
+            assert "***" in log_params
+            assert "secret123" not in log_params
+            assert "user" in log_params
 
-        result = plain_func("plaintext")
+    def test_log_function_call_redacts_sensitive_return_value(self) -> None:
+        """Test that sensitive values in return dict are redacted in logs."""
+        with patch("logging.getLogger") as mock_get_logger:
+            mock_logger = MagicMock()
+            mock_get_logger.return_value = mock_logger
 
-        assert result == "plaintext"
-        first_call = mock_stdlogger.debug.call_args_list[0]
-        params_json = first_call[0][2]
-        assert "plaintext" in params_json
+            @log_function_call(sensitive_fields=["token"])
+            def get_config() -> dict[str, str]:
+                return {"token": "secret", "name": "test"}
+
+            result: dict[str, str] = get_config()
+
+            # Original return value should be unchanged
+            assert result["token"] == "secret"
+            assert result["name"] == "test"
+
+            # Log should have redacted value
+            second_call = mock_logger.debug.call_args_list[1]  # completion log
+            result_str = str(second_call)
+
+            assert "***" in result_str
+            assert "secret" not in result_str
+            assert "test" in result_str
+
+    def test_log_function_call_redacts_nested_sensitive_values(self) -> None:
+        """Test that nested sensitive values in return dict are redacted."""
+        with patch("logging.getLogger") as mock_get_logger:
+            mock_logger = MagicMock()
+            mock_get_logger.return_value = mock_logger
+
+            @log_function_call(sensitive_fields=["token", "api_token"])
+            def load_config() -> dict[str, dict[str, str]]:
+                return {
+                    "github": {"token": "ghp_xxx"},
+                    "jenkins": {
+                        "api_token": "jenkins_xxx",
+                        "url": "http://example.com",
+                    },
+                }
+
+            result: dict[str, dict[str, str]] = load_config()
+
+            # Original return value should be unchanged
+            assert result["github"]["token"] == "ghp_xxx"
+            assert result["jenkins"]["api_token"] == "jenkins_xxx"
+
+            # Log should have redacted values
+            second_call = mock_logger.debug.call_args_list[1]
+            result_str = str(second_call)
+
+            assert "ghp_xxx" not in result_str
+            assert "jenkins_xxx" not in result_str
+            assert "http://example.com" in result_str
+
+    def test_log_function_call_non_dict_return_unchanged(self) -> None:
+        """Test that non-dict return values work correctly with sensitive_fields."""
+        with patch("logging.getLogger") as mock_get_logger:
+            mock_logger = MagicMock()
+            mock_get_logger.return_value = mock_logger
+
+            @log_function_call(sensitive_fields=["token"])
+            def get_number() -> int:
+                return 42
+
+            result: int = get_number()
+            assert result == 42
+            assert mock_logger.debug.call_count == 2
