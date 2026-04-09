@@ -1,8 +1,15 @@
 """Redaction utilities for sanitising sensitive data before logging."""
 
+from collections.abc import Mapping
 from typing import Any
 
-__all__ = ["redact_for_logging", "REDACTED_VALUE", "RedactableDict"]
+__all__ = [
+    "redact_for_logging",
+    "redact_env_vars",
+    "SENSITIVE_KEY_PATTERNS",
+    "REDACTED_VALUE",
+    "RedactableDict",
+]
 
 # Type alias for dictionaries that can have string or tuple keys
 # Used by redact_for_logging to handle get_config_values() return format
@@ -10,6 +17,18 @@ RedactableDict = dict[str | tuple[str, ...], Any]
 
 # Redaction placeholder for sensitive values
 REDACTED_VALUE = "***"
+
+# Substring patterns for identifying sensitive env var keys (case-insensitive)
+SENSITIVE_KEY_PATTERNS: frozenset[str] = frozenset(
+    {
+        "token",
+        "secret",
+        "password",
+        "credential",
+        "api_key",
+        "access_key",
+    }
+)
 
 
 def redact_for_logging(
@@ -44,4 +63,32 @@ def redact_for_logging(
             result[key] = REDACTED_VALUE
         elif isinstance(result[key], dict):
             result[key] = redact_for_logging(result[key], sensitive_fields)
+    return result
+
+
+def redact_env_vars(
+    env: Mapping[str, str],
+    extra_patterns: frozenset[str] | None = None,
+) -> dict[str, str]:
+    """Redact env var values whose keys contain sensitive substrings (case-insensitive).
+
+    Args:
+        env: Mapping of environment variable names to values.
+        extra_patterns: Additional substring patterns to merge with defaults.
+
+    Returns:
+        A new dict with sensitive values replaced by the redaction placeholder.
+    """
+    patterns = (
+        SENSITIVE_KEY_PATTERNS | extra_patterns
+        if extra_patterns
+        else SENSITIVE_KEY_PATTERNS
+    )
+    result: dict[str, str] = {}
+    for key, value in env.items():
+        key_lower = key.lower()
+        if any(pattern in key_lower for pattern in patterns):
+            result[key] = REDACTED_VALUE
+        else:
+            result[key] = value
     return result

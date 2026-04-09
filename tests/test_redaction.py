@@ -1,6 +1,14 @@
 """Tests for redaction module."""
 
-from mcp_coder_utils.redaction import RedactableDict, redact_for_logging
+import pytest
+
+from mcp_coder_utils.redaction import (
+    REDACTED_VALUE,
+    SENSITIVE_KEY_PATTERNS,
+    RedactableDict,
+    redact_env_vars,
+    redact_for_logging,
+)
 
 
 class TestRedactForLogging:
@@ -117,3 +125,101 @@ class TestRedactForLoggingTupleKeys:
         # Empty tuple should not crash and value should be unchanged
         assert result[()] == "empty_tuple_value"
         assert result[("normal", "key")] == "normal_value"
+
+
+class TestSensitiveKeyPatterns:
+    """Tests for the SENSITIVE_KEY_PATTERNS constant."""
+
+    def test_sensitive_key_patterns_contents(self) -> None:
+        """Verify the frozenset contains exactly the 6 expected patterns."""
+        expected = frozenset(
+            {
+                "token",
+                "secret",
+                "password",
+                "credential",
+                "api_key",
+                "access_key",
+            }
+        )
+        assert SENSITIVE_KEY_PATTERNS == expected
+
+    def test_sensitive_key_patterns_is_frozenset(self) -> None:
+        """Verify SENSITIVE_KEY_PATTERNS is immutable."""
+        assert isinstance(SENSITIVE_KEY_PATTERNS, frozenset)
+
+
+class TestRedactEnvVars:
+    """Tests for the redact_env_vars function."""
+
+    @pytest.mark.parametrize(
+        ("key", "value"),
+        [
+            ("GITHUB_TOKEN", "ghp_abc123"),
+            ("AWS_SECRET_KEY", "wJalrXUtnFEMI"),
+            ("DB_PASSWORD", "hunter2"),
+            ("MY_CREDENTIAL_FILE", "/path/to/cred"),
+            ("AWS_ACCESS_KEY_ID", "AKIAIOSFODNN7"),
+            ("JENKINS_API_KEY", "abcdef12345"),
+        ],
+    )
+    def test_redact_env_vars_sensitive_keys(self, key: str, value: str) -> None:
+        """Sensitive env var keys are redacted."""
+        result = redact_env_vars({key: value})
+        assert result[key] == REDACTED_VALUE
+
+    @pytest.mark.parametrize(
+        "key",
+        ["github_token", "GitHub_Token", "GITHUB_TOKEN", "Github_SECRET"],
+    )
+    def test_redact_env_vars_case_insensitive(self, key: str) -> None:
+        """Matching is case-insensitive."""
+        result = redact_env_vars({key: "sensitive_value"})
+        assert result[key] == REDACTED_VALUE
+
+    @pytest.mark.parametrize(
+        ("key", "value"),
+        [
+            ("PATH", "/usr/bin"),
+            ("HOME", "/home/user"),
+            ("LANG", "en_US.UTF-8"),
+            ("SHELL", "/bin/bash"),
+        ],
+    )
+    def test_redact_env_vars_safe_keys_unchanged(self, key: str, value: str) -> None:
+        """Non-sensitive env var keys pass through unchanged."""
+        result = redact_env_vars({key: value})
+        assert result[key] == value
+
+    @pytest.mark.parametrize(
+        "key",
+        ["KEYBOARD_LAYOUT", "HKEY_LOCAL"],
+    )
+    def test_redact_env_vars_no_false_positive_on_key(self, key: str) -> None:
+        """Keys containing 'key' as a word fragment are NOT redacted (no bare 'key' pattern)."""
+        result = redact_env_vars({key: "some_value"})
+        assert result[key] == "some_value"
+
+    def test_redact_env_vars_extra_patterns(self) -> None:
+        """Custom extra_patterns extend the default patterns."""
+        env = {
+            "DATABASE_CONN_STR": "Server=prod;Password=x",
+            "GITHUB_TOKEN": "ghp_abc",
+            "HOME": "/home/user",
+        }
+        result = redact_env_vars(env, extra_patterns=frozenset({"conn_str"}))
+        assert result["DATABASE_CONN_STR"] == REDACTED_VALUE
+        assert result["GITHUB_TOKEN"] == REDACTED_VALUE
+        assert result["HOME"] == "/home/user"
+
+    def test_redact_env_vars_empty_input(self) -> None:
+        """Empty input returns empty dict."""
+        result = redact_env_vars({})
+        assert result == {}
+
+    def test_redact_env_vars_returns_new_dict(self) -> None:
+        """Original mapping is not mutated."""
+        env = {"GITHUB_TOKEN": "ghp_abc", "PATH": "/usr/bin"}
+        result = redact_env_vars(env)
+        assert result is not env
+        assert env["GITHUB_TOKEN"] == "ghp_abc"

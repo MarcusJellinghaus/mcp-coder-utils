@@ -27,9 +27,9 @@ This tracks **Feature Implementation** consisting of multiple **Tasks**.
 - [x] Commit message prepared
 
 ### Step 2: Add `SENSITIVE_KEY_PATTERNS` and `redact_env_vars`
-- [ ] Implementation: write tests (TDD) then implement `SENSITIVE_KEY_PATTERNS` and `redact_env_vars` in `redaction.py`, update `__all__`
-- [ ] Quality checks: pylint, pytest, mypy — fix all issues
-- [ ] Commit message prepared
+- [x] Implementation: write tests (TDD) then implement `SENSITIVE_KEY_PATTERNS` and `redact_env_vars` in `redaction.py`, update `__all__`
+- [x] Quality checks: pylint, pytest, mypy — fix all issues
+- [x] Commit message prepared
 
 ## Pull Request
 - [ ] PR review and summary

@@ -1,11 +1,5 @@
-refactor: extract redaction module from log_utils
+feat: add redact_env_vars with substring-based key matching
 
-Move REDACTED_VALUE, RedactableDict, _redact_for_logging from log_utils.py
-into new redaction.py module. Rename to public API: redact_for_logging.
-log_utils.py imports from redaction.py internally.
-
-- Create src/mcp_coder_utils/redaction.py with moved symbols
-- Update log_utils.py to import from redaction.py
-- Move TestRedactForLogging and TestRedactForLoggingTupleKeys to test_redaction.py
-- Move TestLogFunctionCallWithSensitiveFields to test_log_utils.py
-- Delete test_log_utils_redaction.py
+Add SENSITIVE_KEY_PATTERNS constant and redact_env_vars function for
+case-insensitive substring matching on env var keys. Supports
+extra_patterns parameter for caller-specific patterns.
