@@ -454,7 +454,7 @@ class TestSTDIOIsolation:
         """Test subprocess timeout handling."""
         test_script = temp_dir / "timeout_script.py"
         test_script.write_text(
-            "import time\n" "time.sleep(10)\n" "print('Should not reach here')\n"
+            "import time\ntime.sleep(10)\nprint('Should not reach here')\n"
         )
 
         command = [sys.executable, "-u", str(test_script)]

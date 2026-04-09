@@ -1,5 +1,5 @@
-fix: add missing docstrings and document ValueError in raises section
+fix: resolve pylint W1404 implicit-str-concat warnings in test files
 
-- Add Returns section to format_command docstring (DOC201)
-- Document ValueError in execute_subprocess Raises section (DOC501)
-- Add docstrings to StreamResult.__iter__ and __next__ methods (D105)
+Merge adjacent string literals into single strings in:
+- tests/test_subprocess_runner.py:457 (timeout test script)
+- tests/test_subprocess_streaming.py:19 (inactivity timeout script)

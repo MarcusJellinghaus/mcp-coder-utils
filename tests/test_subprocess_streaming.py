@@ -16,7 +16,7 @@ class TestStreamInactivityWatchdog:
     def test_stream_inactivity_timeout_kills_process(self) -> None:
         """A process that hangs (no output) should be killed by the watchdog."""
         # Script prints one line then sleeps forever
-        script = "import sys, time; " "print('start', flush=True); " "time.sleep(60)"
+        script = "import sys, time; print('start', flush=True); time.sleep(60)"
         result = stream_subprocess(
             [sys.executable, "-c", script],
             inactivity_timeout_seconds=2,
