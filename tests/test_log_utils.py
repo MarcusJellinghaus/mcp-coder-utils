@@ -640,3 +640,124 @@ class TestSetupLoggingFormatterSelection:
         """DEBUG threshold should use ExtraFieldsFormatter."""
         formatter = self._get_console_formatter("DEBUG")
         assert isinstance(formatter, ExtraFieldsFormatter)
+
+
+class TestLogFunctionCallWithSensitiveFields:
+    """Tests for log_function_call decorator with sensitive_fields parameter."""
+
+    def test_log_function_call_without_sensitive_fields(self) -> None:
+        """Test that decorator works without sensitive_fields (backward compatible)."""
+        with patch("logging.getLogger") as mock_get_logger:
+            mock_logger = MagicMock()
+            mock_get_logger.return_value = mock_logger
+
+            @log_function_call
+            def simple_func(x: int) -> int:
+                return x * 2
+
+            result = simple_func(5)
+            assert result == 10
+            assert mock_logger.debug.call_count == 2
+
+    def test_log_function_call_with_parentheses_no_args(self) -> None:
+        """Test that decorator works with empty parentheses."""
+        with patch("logging.getLogger") as mock_get_logger:
+            mock_logger = MagicMock()
+            mock_get_logger.return_value = mock_logger
+
+            @log_function_call()
+            def simple_func(x: int) -> int:
+                return x * 2
+
+            result: int = simple_func(5)
+            assert result == 10
+            assert mock_logger.debug.call_count == 2
+
+    def test_log_function_call_redacts_sensitive_params(self) -> None:
+        """Test that sensitive parameter values are redacted in logs."""
+        with patch("logging.getLogger") as mock_get_logger:
+            mock_logger = MagicMock()
+            mock_get_logger.return_value = mock_logger
+
+            @log_function_call(sensitive_fields=["token", "password"])
+            def auth_func(token: str, username: str) -> bool:  # noqa: vulture
+                _ = token, username  # consumed by decorator via inspect
+                return True
+
+            auth_func(token="secret123", username="user")
+
+            # Verify log contains "***" for token, but "user" for username
+            first_call = mock_logger.debug.call_args_list[0]
+            log_params = first_call[0][2]  # JSON string of parameters
+
+            assert "***" in log_params
+            assert "secret123" not in log_params
+            assert "user" in log_params
+
+    def test_log_function_call_redacts_sensitive_return_value(self) -> None:
+        """Test that sensitive values in return dict are redacted in logs."""
+        with patch("logging.getLogger") as mock_get_logger:
+            mock_logger = MagicMock()
+            mock_get_logger.return_value = mock_logger
+
+            @log_function_call(sensitive_fields=["token"])
+            def get_config() -> dict[str, str]:
+                return {"token": "secret", "name": "test"}
+
+            result: dict[str, str] = get_config()
+
+            # Original return value should be unchanged
+            assert result["token"] == "secret"
+            assert result["name"] == "test"
+
+            # Log should have redacted value
+            second_call = mock_logger.debug.call_args_list[1]  # completion log
+            result_str = str(second_call)
+
+            assert "***" in result_str
+            assert "secret" not in result_str
+            assert "test" in result_str
+
+    def test_log_function_call_redacts_nested_sensitive_values(self) -> None:
+        """Test that nested sensitive values in return dict are redacted."""
+        with patch("logging.getLogger") as mock_get_logger:
+            mock_logger = MagicMock()
+            mock_get_logger.return_value = mock_logger
+
+            @log_function_call(sensitive_fields=["token", "api_token"])
+            def load_config() -> dict[str, dict[str, str]]:
+                return {
+                    "github": {"token": "ghp_xxx"},
+                    "jenkins": {
+                        "api_token": "jenkins_xxx",
+                        "url": "http://example.com",
+                    },
+                }
+
+            result: dict[str, dict[str, str]] = load_config()
+
+            # Original return value should be unchanged
+            assert result["github"]["token"] == "ghp_xxx"
+            assert result["jenkins"]["api_token"] == "jenkins_xxx"
+
+            # Log should have redacted values
+            second_call = mock_logger.debug.call_args_list[1]
+            result_str = str(second_call)
+
+            assert "ghp_xxx" not in result_str
+            assert "jenkins_xxx" not in result_str
+            assert "http://example.com" in result_str
+
+    def test_log_function_call_non_dict_return_unchanged(self) -> None:
+        """Test that non-dict return values work correctly with sensitive_fields."""
+        with patch("logging.getLogger") as mock_get_logger:
+            mock_logger = MagicMock()
+            mock_get_logger.return_value = mock_logger
+
+            @log_function_call(sensitive_fields=["token"])
+            def get_number() -> int:
+                return 42
+
+            result: int = get_number()
+            assert result == 42
+            assert mock_logger.debug.call_count == 2
