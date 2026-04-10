@@ -1,5 +1,0 @@
-feat: add redact_env_vars with substring-based key matching
-
-Add SENSITIVE_KEY_PATTERNS constant and redact_env_vars function for
-case-insensitive substring matching on env var keys. Supports
-extra_patterns parameter for caller-specific patterns.
