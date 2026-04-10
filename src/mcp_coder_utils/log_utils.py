@@ -331,11 +331,7 @@ def log_function_call(
             log_params: dict[str, Any] = {}
 
             # Handle method calls (skip self/cls)
-            if (
-                args
-                and hasattr(args[0], "__class__")
-                and args[0].__class__.__module__ != "builtins"
-            ):
+            if args and fn.__code__.co_varnames[0] in ("self", "cls"):
                 log_params.update(
                     dict(zip(fn.__code__.co_varnames[1 : len(args)], args[1:]))
                 )

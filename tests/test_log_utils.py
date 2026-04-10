@@ -196,12 +196,12 @@ class TestLogFunctionCall:
             # The second argument should be a JSON string of parameters
             params_json = first_call[0][2]
 
-            # NOTE: There's a bug in the decorator where Path objects with __class__.__module__ != "builtins"
-            # are incorrectly treated as 'self' parameters and skipped. This results in empty params.
-            # For now, we'll just verify the decorator was called and the result is correct.
             params = json.loads(params_json)
-            # Due to the bug, params will be empty, but the function still works correctly
-            assert params == {}  # Known issue with Path parameter detection
+            assert "file_path" in params
+            assert (
+                str(test_path) in params["file_path"]
+                or str(test_path).replace("/", "\\") in params["file_path"]
+            )
 
             # Second call should be the completion log
             second_call = mock_logger.debug.call_args_list[1]
@@ -214,6 +214,32 @@ class TestLogFunctionCall:
             assert str(test_path).replace("/", "\\") in str(result_arg) or str(
                 test_path
             ) in str(result_arg)
+
+    def test_log_function_call_method_skips_self(self) -> None:
+        """Test that self is correctly skipped when decorating a method."""
+        with patch("logging.getLogger") as mock_get_logger:
+            mock_logger = MagicMock()
+            mock_get_logger.return_value = mock_logger
+
+            class MyService:
+                @log_function_call
+                def process(self, name: str, count: int) -> str:
+                    return f"{name}:{count}"
+
+            svc = MyService()
+            result = svc.process("test", 5)
+
+            assert result == "test:5"
+            assert mock_logger.debug.call_count == 2
+
+            first_call = mock_logger.debug.call_args_list[0]
+            params_json = first_call[0][2]
+            params = json.loads(params_json)
+
+            # self should be skipped, only name and count logged
+            assert "self" not in params
+            assert params["name"] == "test"
+            assert params["count"] == 5
 
     def test_log_function_call_with_large_result(self) -> None:
         """Test that large results are properly truncated in logs."""
