@@ -64,7 +64,8 @@
       "mcp__tools-py__run_lint_imports_check",
       "mcp__tools-py__run_vulture_check",
       "mcp__tools-py__get_library_source",
-      "mcp__workspace__search_files"
+      "mcp__workspace__search_files",
+      "mcp__tools-py__run_ruff_check"
     ]
   },
   "enableAllProjectMcpServers": true,
