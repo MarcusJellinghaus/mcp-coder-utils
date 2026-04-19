@@ -8,7 +8,7 @@
 - `.claude/settings.local.json` — the `permissions.allow` array
 
 ## WHAT
-Append 13 new permission strings to the end of the `allow` array:
+Add 12 new permission strings to the `allow` array and sort the entire array alphabetically:
 
 ```json
 "mcp__obsidian-wiki__add-tags",
@@ -26,7 +26,7 @@ Append 13 new permission strings to the end of the `allow` array:
 ```
 
 ## HOW
-- Use `mcp__workspace__edit_file` to append the new entries after the last existing permission in the array.
+- Add the 12 new entries to the array, then sort all entries in the array alphabetically.
 
 ## DATA
 - No return values — file edit only.
@@ -41,5 +41,5 @@ chore(config): add obsidian-wiki and search_reference_files permissions
 ## LLM Prompt
 
 > Read `pr_info/steps/summary.md` and `pr_info/steps/step_2.md`.
-> Edit `.claude/settings.local.json`: append the 13 new permission strings listed in the step to the end of the `permissions.allow` array. Commit with the message from the step.
+> Edit `.claude/settings.local.json`: add the 12 new permission strings listed in the step to the `permissions.allow` array and sort the entire array alphabetically. Commit with the message from the step.
 > No code quality checks needed — config-only change.
