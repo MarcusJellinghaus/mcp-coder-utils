@@ -32,8 +32,10 @@ This tracks **Feature Implementation** consisting of multiple **Tasks**.
 ### Step 2: Add obsidian-wiki and search_reference_files permissions
 > [Details](./steps/step_2.md) — Add 12 new permission strings to `.claude/settings.local.json` and sort array alphabetically
 
-- [ ] Implementation (add 12 permissions to `allow` array, sort alphabetically)
-- [ ] Commit message prepared
+- [x] Implementation (add 12 permissions to `allow` array, sort alphabetically)
+- [x] Commit message prepared
+
+**Commit message:** `chore(config): add obsidian-wiki and search_reference_files permissions`
 
 ### Step 3: Update CLAUDE.md reference projects and tool mapping
 > [Details](./steps/step_3.md) — Rename `p_mcp_coder` → `p_coder` in reference projects; add `search_reference_files` to tool mapping table
