@@ -41,5 +41,5 @@ This tracks **Feature Implementation** consisting of multiple **Tasks**.
 
 ## Pull Request
 
-- [ ] PR review: verify all steps complete and no bash git references remain for status/diff/log
+- [x] PR review: verify all steps complete and no bash git references remain for status/diff/log
 - [ ] PR summary prepared
