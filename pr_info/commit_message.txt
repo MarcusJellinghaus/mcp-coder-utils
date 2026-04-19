@@ -1,10 +1,9 @@
-docs(skills): replace bash git with MCP tools in commit_push and plan_review
+refactor: migrate git status/diff/log to MCP tools in review and rebase skills
 
-Update commit_push SKILL.md:
-- Replace Bash(git status/diff/log) with MCP equivalents in frontmatter
-- Replace bash code block with MCP tool references in body
+Update implementation_review, rebase, rebase_design, and
+implementation_review_supervisor skill files to use MCP workspace
+git tools instead of bash git commands for read-only operations:
 
-Update plan_review SKILL.md:
-- Replace Bash(git status) with mcp__workspace__git_status in frontmatter
-- Replace git status bash usage with MCP tool reference in body
-- Keep git fetch as bash (no MCP equivalent)
+- Replace Bash(git status/diff/log) with mcp__workspace__git_status/diff/log
+- Remove Bash(mcp-coder git-tool) references, replaced by mcp__workspace__git_diff
+- Restructure rebase_design.md permissions to separate MCP tools from bash commands
