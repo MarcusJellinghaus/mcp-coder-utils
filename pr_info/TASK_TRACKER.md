@@ -24,8 +24,10 @@ This tracks **Feature Implementation** consisting of multiple **Tasks**.
 ### Step 1: Migrate .mcp.json reference projects to new KV format
 > [Details](./steps/step_1.md) — Replace 4 `--reference-project` value strings with new `name=...,path=...,url=...` KV format; rename `p_mcp_coder` → `p_coder`
 
-- [ ] Implementation (edit `.mcp.json` with 4 reference project string replacements)
-- [ ] Commit message prepared
+- [x] Implementation (edit `.mcp.json` with 4 reference project string replacements)
+- [x] Commit message prepared
+
+**Commit message:** `chore(config): migrate .mcp.json reference projects to new KV format`
 
 ### Step 2: Add obsidian-wiki and search_reference_files permissions
 > [Details](./steps/step_2.md) — Add 12 new permission strings to `.claude/settings.local.json` and sort array alphabetically
