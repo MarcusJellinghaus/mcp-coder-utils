@@ -21,6 +21,25 @@ This tracks **Feature Implementation** consisting of multiple **Tasks**.
 
 ## Tasks
 
-<!-- Tasks populated from pr_info/steps/ by prepare_task_tracker -->
+### Step 1: Update settings.local.json, CLAUDE.md, and refactoring_principles
+
+- [ ] Implementation: update `settings.local.json` permissions, restructure CLAUDE.md git section, update refactoring_principles.md reference ([step_1.md](steps/step_1.md))
+- [ ] Quality checks: pylint, pytest, mypy — fix all issues
+- [ ] Commit message prepared
+
+### Step 2: Update commit_push and plan_review skills
+
+- [ ] Implementation: swap bash git entries for MCP tools in frontmatter and body of both skill files ([step_2.md](steps/step_2.md))
+- [ ] Quality checks: pylint, pytest, mypy — fix all issues
+- [ ] Commit message prepared
+
+### Step 3: Update implementation_review, rebase skill, rebase design doc, and implementation_review_supervisor
+
+- [ ] Implementation: swap bash git entries for MCP tools in frontmatter and body of all four files ([step_3.md](steps/step_3.md))
+- [ ] Quality checks: pylint, pytest, mypy — fix all issues
+- [ ] Commit message prepared
 
 ## Pull Request
+
+- [ ] PR review: verify all steps complete and no bash git references remain for status/diff/log
+- [ ] PR summary prepared
