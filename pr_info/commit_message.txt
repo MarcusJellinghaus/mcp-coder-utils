@@ -1,1 +1,0 @@
-chore(docs): update CLAUDE.md reference project name and tool mapping
