@@ -23,6 +23,9 @@
 - `mcp__workspace__git_status`
 - `mcp__workspace__git_merge_base`
 
+**WHAT — Add this Bash entry to `permissions.allow`:**
+- `Bash(git show:*)`
+
 **WHAT — Keep unchanged:**
 - `Bash(git fetch:*)`
 - `Bash(git ls-tree:*)`
@@ -58,6 +61,14 @@ mcp-coder gh-tool set-status <label>  # change issue workflow status label
 ```
 
 Keep all content before and after the git section unchanged (including "Before every commit", "Bash discipline", "Commit messages" paragraphs).
+
+## 1C: `.claude/knowledge_base/refactoring_principles.md`
+
+**WHERE:** `.claude/knowledge_base/refactoring_principles.md`
+
+**WHAT:** In the "Process" section (step 4), replace `mcp-coder git-tool compact-diff` with `mcp__workspace__git_diff`.
+
+This is a documentation reference update, not a config change.
 
 ## Verification
 

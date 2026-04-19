@@ -29,11 +29,13 @@ This is purely a config/documentation update. No Python source code, no tests.
 | `.claude/skills/plan_review/SKILL.md` | Swap 1 Bash git → 1 MCP tool |
 | `.claude/skills/rebase/SKILL.md` | Swap 3 Bash git → 3 MCP tools |
 | `.claude/skills/rebase/rebase_design.md` | Update 2 entries in permissions section |
+| `.claude/skills/implementation_review_supervisor/SKILL.md` | Swap 1 Bash entry → 1 MCP tool |
+| `.claude/knowledge_base/refactoring_principles.md` | Replace `mcp-coder git-tool compact-diff` with MCP tool |
 
 No files created or deleted.
 
 ## Steps
 
-1. **Settings + CLAUDE.md** — Update global config and documentation
+1. **Settings + CLAUDE.md + refactoring_principles** — Update global config, documentation, and knowledge base
 2. **commit_push + plan_review skills** — Simple skills with minimal body changes
-3. **implementation_review + rebase skills** — Skills with more body content to update
+3. **implementation_review + rebase skills + implementation_review_supervisor** — Skills with more body content to update
