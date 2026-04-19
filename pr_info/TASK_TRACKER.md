@@ -40,8 +40,8 @@ This tracks **Feature Implementation** consisting of multiple **Tasks**.
 ### Step 3: Update CLAUDE.md reference projects and tool mapping
 > [Details](./steps/step_3.md) — Rename `p_mcp_coder` → `p_coder` in reference projects; add `search_reference_files` to tool mapping table
 
-- [ ] Implementation (2 edits to `.claude/CLAUDE.md`)
-- [ ] Commit message prepared
+- [x] Implementation (2 edits to `.claude/CLAUDE.md`)
+- [x] Commit message prepared
 
 ## Pull Request
 - [ ] PR review: verify all 3 config files are updated correctly
