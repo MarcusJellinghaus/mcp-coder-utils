@@ -44,5 +44,5 @@ This tracks **Feature Implementation** consisting of multiple **Tasks**.
 - [x] Commit message prepared
 
 ## Pull Request
-- [ ] PR review: verify all 3 config files are updated correctly
+- [x] PR review: verify all 3 config files are updated correctly
 - [ ] PR summary prepared
