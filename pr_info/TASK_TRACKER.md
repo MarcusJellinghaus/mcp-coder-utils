@@ -23,9 +23,9 @@ This tracks **Feature Implementation** consisting of multiple **Tasks**.
 
 ### Step 1: Update settings.local.json, CLAUDE.md, and refactoring_principles
 
-- [ ] Implementation: update `settings.local.json` permissions, restructure CLAUDE.md git section, update refactoring_principles.md reference ([step_1.md](steps/step_1.md))
-- [ ] Quality checks: pylint, pytest, mypy — fix all issues
-- [ ] Commit message prepared
+- [x] Implementation: update `settings.local.json` permissions, restructure CLAUDE.md git section, update refactoring_principles.md reference ([step_1.md](steps/step_1.md))
+- [x] Quality checks: pylint, pytest, mypy — fix all issues
+- [x] Commit message prepared
 
 ### Step 2: Update commit_push and plan_review skills
 
