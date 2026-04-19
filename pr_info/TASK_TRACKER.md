@@ -29,9 +29,9 @@ This tracks **Feature Implementation** consisting of multiple **Tasks**.
 
 ### Step 2: Update commit_push and plan_review skills
 
-- [ ] Implementation: swap bash git entries for MCP tools in frontmatter and body of both skill files ([step_2.md](steps/step_2.md))
-- [ ] Quality checks: pylint, pytest, mypy — fix all issues
-- [ ] Commit message prepared
+- [x] Implementation: swap bash git entries for MCP tools in frontmatter and body of both skill files ([step_2.md](steps/step_2.md))
+- [x] Quality checks: pylint, pytest, mypy — fix all issues
+- [x] Commit message prepared
 
 ### Step 3: Update implementation_review, rebase skill, rebase design doc, and implementation_review_supervisor
 

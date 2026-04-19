@@ -1,9 +1,10 @@
-Replace bash git permissions with MCP git tools in config and docs
+docs(skills): replace bash git with MCP tools in commit_push and plan_review
 
-- settings.local.json: remove Bash(git diff/log/status) and
-  Bash(mcp-coder git-tool) permissions; add mcp__workspace__git_status,
-  git_diff, git_log, git_merge_base; add Bash(git show:*)
-- CLAUDE.md: restructure git section with MCP tools table (preferred)
-  and Bash-only commands block
-- refactoring_principles.md: update diff review step to use
-  mcp__workspace__git_diff instead of mcp-coder git-tool compact-diff
+Update commit_push SKILL.md:
+- Replace Bash(git status/diff/log) with MCP equivalents in frontmatter
+- Replace bash code block with MCP tool references in body
+
+Update plan_review SKILL.md:
+- Replace Bash(git status) with mcp__workspace__git_status in frontmatter
+- Replace git status bash usage with MCP tool reference in body
+- Keep git fetch as bash (no MCP equivalent)
