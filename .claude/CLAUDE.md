@@ -30,6 +30,7 @@ Use MCP tools for **all** operations. Never use `Read`, `Write`, `Edit`, or `Bas
 | Read reference project | `mcp__workspace__read_reference_file` |
 | List reference dir | `mcp__workspace__list_reference_directory` |
 | Get reference projects | `mcp__workspace__get_reference_projects` |
+| Search reference files | `mcp__workspace__search_reference_files` |
 | Run pytest | `mcp__tools-py__run_pytest_check` |
 | Run pylint | `mcp__tools-py__run_pylint_check` |
 | Run mypy | `mcp__tools-py__run_mypy_check` |
@@ -43,7 +44,7 @@ Use MCP tools for **all** operations. Never use `Read`, `Write`, `Edit`, or `Bas
 
 Read-only browse via `mcp__workspace__read_reference_file`:
 
-- `p_mcp_coder` — `mcp_coder` source
+- `p_coder` — `mcp_coder` source
 - `p_workspace` — `mcp-workspace` source
 - `p_config` — `mcp-config` source
 - `p_tools` — `mcp-tools-py` source
