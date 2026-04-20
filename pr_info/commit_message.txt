@@ -1,9 +1,0 @@
-refactor: migrate git status/diff/log to MCP tools in review and rebase skills
-
-Update implementation_review, rebase, rebase_design, and
-implementation_review_supervisor skill files to use MCP workspace
-git tools instead of bash git commands for read-only operations:
-
-- Replace Bash(git status/diff/log) with mcp__workspace__git_status/diff/log
-- Remove Bash(mcp-coder git-tool) references, replaced by mcp__workspace__git_diff
-- Restructure rebase_design.md permissions to separate MCP tools from bash commands
