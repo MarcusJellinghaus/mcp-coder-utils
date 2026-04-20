@@ -14,10 +14,13 @@ The slash command requires two sets of permissions in `allowed-tools`:
 
 These are the additional git permissions needed specifically for rebase operations:
 
+**MCP tools:**
+- `mcp__workspace__git_status`
+- `mcp__workspace__git_log`
+
+**Bash commands:**
 ```
-# Status and investigation
-Bash(git status:*)
-Bash(git log:*)
+# Investigation
 Bash(git branch:*)
 Bash(git ls-files:*)
 

@@ -64,12 +64,19 @@ All checks must pass before proceeding.
 
 ## Git operations
 
-**Allowed commands via Bash:**
+**MCP tools (preferred):**
+
+| Task | MCP tool |
+|------|----------|
+| Git status | `mcp__workspace__git_status` |
+| Git diff | `mcp__workspace__git_diff` |
+| Git log | `mcp__workspace__git_log` |
+| Git merge-base | `mcp__workspace__git_merge_base` |
+
+**Bash (no MCP equivalent):**
 
 ```
-git status / diff / commit / log / fetch / ls-tree
-gh issue view / gh run view
-mcp-coder git-tool compact-diff    # diff that detects moves, collapses unchanged blocks
+git commit / fetch / show / ls-tree
 mcp-coder check branch-status      # CI status, rebase needs, task completion, labels
 mcp-coder check file-size           # find files exceeding line-count threshold
 mcp-coder gh-tool set-status <label>  # change issue workflow status label
