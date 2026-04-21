@@ -44,6 +44,11 @@ src/mcp_coder_utils/
     log_utils.py
     subprocess_runner.py
     subprocess_streaming.py
+    fs/
+        __init__.py
+        path_security.py
+        read_file.py
+        text.py
 ```
 
 ## Tests

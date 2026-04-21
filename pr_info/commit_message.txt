@@ -1,1 +1,1 @@
-feat(fs): add path_security module with normalize_path
+feat(fs): wire up __init__ re-exports and update architecture docs
