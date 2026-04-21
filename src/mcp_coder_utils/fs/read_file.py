@@ -17,10 +17,6 @@ def read_file(file_path: str | Path, encoding: str = "utf-8") -> str:
 
     Returns:
         File contents as a string.
-
-    Raises:
-        FileNotFoundError: If the file does not exist.
-        OSError: If the file cannot be read.
     """
     path = Path(file_path)
     try:

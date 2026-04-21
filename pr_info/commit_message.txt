@@ -1,1 +1,6 @@
-feat(fs): wire up __init__ re-exports and update architecture docs
+fix: resolve ruff DOC502 and invalid noqa directive
+
+- Remove Raises section from read_file docstring since FileNotFoundError
+  and OSError are not explicitly raised (DOC502)
+- Fix invalid noqa directive format in test_log_utils.py (noqa: vulture
+  -> noqa: F841)
