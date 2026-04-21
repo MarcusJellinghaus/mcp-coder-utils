@@ -43,7 +43,10 @@ from mcp_coder_utils.fs.text import normalize_line_endings
 
 ### `docs/architecture/architecture.md`
 
-Add the `fs/` subpackage to the "Package layout" section:
+Add the `fs/` subpackage to the "Package layout" section.
+
+**Scope note:** Only add the `fs/` subtree to the existing layout. Do not fix
+pre-existing omissions in the architecture doc (out of scope).
 
 ```
 src/mcp_coder_utils/

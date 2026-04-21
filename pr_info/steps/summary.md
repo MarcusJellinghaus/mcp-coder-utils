@@ -50,7 +50,7 @@ stdlib only.
 |---|---|---|
 | Module split | 3 separate files | Security vs I/O vs text — distinct concerns |
 | `read_file` version | `encoding` parameter variant | Superset of all existing copies |
-| `normalize_path` weakness | Preserved as-is | Pre-existing; out of scope for extraction |
+| `normalize_path` weakness | Not reproduced | Improved implementation using `is_relative_to()` is stricter than the original `os.path.commonpath()` approach |
 | Dependencies | Zero new deps | All stdlib (`pathlib`, `os`) |
 | `__init__.py` exports | Re-export all public symbols | Convenience for consumers |
 
@@ -60,7 +60,7 @@ stdlib only.
 |---|---|
 | `src/mcp_coder_utils/fs/__init__.py` | Subpackage init, re-exports public API |
 | `src/mcp_coder_utils/fs/read_file.py` | `read_file()` function |
-| `src/mcp_coder_utils/fs/path_security.py` | `normalize_path()` function |
+| `src/mcp_coder_utils/fs/path_security.py` | `normalize_path()` function (based on mcp_workspace's `path_utils.py`, with API improvements) |
 | `src/mcp_coder_utils/fs/text.py` | `normalize_line_endings()` function |
 | `tests/test_fs_read_file.py` | Tests for read_file module |
 | `tests/test_fs_path_security.py` | Tests for path_security module |

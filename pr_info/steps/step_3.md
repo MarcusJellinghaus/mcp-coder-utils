@@ -6,8 +6,8 @@
 
 > Read the summary at `pr_info/steps/summary.md` and this step file.
 > Implement `fs/path_security.py` with its test file using TDD. Write tests first,
-> then implement the function. Preserve the known weakness: `resolve()` silently
-> passes for non-existent paths. Run all quality checks. Commit when green.
+> then implement the function. This is an improved extraction — see the "Intentional
+> deviations" section below. Run all quality checks. Commit when green.
 
 ## WHERE
 
@@ -23,12 +23,18 @@
 Security boundary function that resolves a requested path and verifies it falls
 within an allowed root directory. Prevents path traversal attacks (e.g. `../../etc/passwd`).
 
-Extracted from mcp_workspace's `path_utils.py`. Currently 1 consumer but
-foundational security infrastructure.
+Based on mcp_workspace's `path_utils.py`, with API improvements for the shared
+library. Currently 1 consumer but foundational security infrastructure.
 
-**Known weakness (preserve, do not fix):** When `resolve()` is called on a
-non-existent path, it resolves what it can but doesn't raise — so a traversal
-via non-existent intermediate directories may silently pass the check.
+### Intentional deviations from the source
+
+| Aspect | Source (`path_utils.py`) | This implementation |
+|---|---|---|
+| Return type | `tuple[Path, str]` (resolved path + relative) | `Path` only — consumers can derive the relative path themselves |
+| Containment check | `os.path.commonpath()` | `is_relative_to()` — cleaner, stricter |
+| Absolute path handling | varies | `resolve()` for consistent canonicalization |
+| None guard | `allowed_root` typed as `Optional[Path]` | `allowed_root` typed as `Path` — no None guard needed |
+| Non-existent paths | try/except falls through (known weakness) | `resolve()` + `is_relative_to()` is stricter — non-existent paths within the root resolve correctly and are accepted; traversal via non-existent intermediates is still caught |
 
 **Signature:**
 ```python
@@ -86,9 +92,9 @@ class TestNormalizePath:
     - test_dot_path                     — "." resolves to root itself
     - test_returns_resolved_path        — result is absolute (resolved)
 
-class TestNormalizePathKnownWeakness:
-    - test_nonexistent_path_resolves    — non-existent "fake/file.txt" doesn't raise
-      (documents the known weakness — resolve() doesn't fail on missing paths)
+class TestNormalizePathNonExistentPaths:
+    - test_nonexistent_path_within_root  — non-existent "fake/file.txt" resolves
+      within root and is accepted (normal resolve() behavior, not a weakness)
 ```
 
 ## COMMIT
