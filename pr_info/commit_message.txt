@@ -1,0 +1,1 @@
+feat(fs): add read_file module with encoding fallback
