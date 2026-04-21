@@ -23,7 +23,7 @@ This tracks **Feature Implementation** consisting of multiple **Tasks**.
 
 - [x] [Step 1: fs/text.py — normalize_line_endings](steps/step_1.md)
 - [x] [Step 2: fs/read_file.py — read_file with encoding fallback](steps/step_2.md)
-- [ ] [Step 3: fs/path_security.py — normalize_path](steps/step_3.md)
+- [x] [Step 3: fs/path_security.py — normalize_path](steps/step_3.md)
 - [ ] [Step 4: Wire up fs/__init__.py re-exports + architecture docs](steps/step_4.md)
 
 ## Pull Request
