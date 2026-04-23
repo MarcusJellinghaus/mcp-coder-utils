@@ -20,11 +20,12 @@ No new modules, classes, or abstractions. This is a **contained change** within
 Inside `decorator()`, we extract the shared logging logic into three private
 helper functions to avoid duplicating the wrapper body:
 
-1. `_log_call_start(fn, args, kwargs, sensitive_set, has_structured)` — handles
-   parameter serialization, redaction, and start logging
-2. `_log_call_success(fn, result, start_time, sensitive_set, has_structured)` —
+1. `_log_call_start(fn, args, kwargs, sensitive_set)` — handles
+   parameter serialization, redaction, and start logging; returns
+   `(func_logger, has_structured, start_time)`
+2. `_log_call_success(fn, result, start_time, sensitive_set, func_logger, has_structured)` —
    handles timing calculation and result logging
-3. `_log_call_error(fn, error, start_time, has_structured)` — handles error logging
+3. `_log_call_error(fn, error, start_time, func_logger, has_structured)` — handles error logging
 
 Both `wrapper` (sync) and `async_wrapper` (async) become thin functions that:
 1. Call `_log_call_start(...)` to log parameters
