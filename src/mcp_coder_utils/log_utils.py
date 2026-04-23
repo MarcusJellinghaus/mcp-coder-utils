@@ -324,7 +324,7 @@ def log_function_call(
             args: tuple[Any, ...],
             kwargs: dict[str, Any],
             sensitive_set: set[str],
-        ) -> tuple[logging.Logger, bool, float]:
+        ) -> tuple[logging.Logger, bool, float, str, str, int]:
             func_name = fn.__name__
             module_name = fn.__module__
             line_no = fn.__code__.co_firstlineno
@@ -392,19 +392,25 @@ def log_function_call(
                 "%s(%s)", func_name, json.dumps(params_for_log, default=str)
             )
 
-            return func_logger, has_structured, time.time()
+            return (
+                func_logger,
+                has_structured,
+                time.time(),
+                func_name,
+                module_name,
+                line_no,
+            )
 
         def _log_call_success(
-            fn: Callable[..., Any],
             result: Any,
             start_time: float,
             sensitive_set: set[str],
             func_logger: logging.Logger,
             has_structured: bool,
+            func_name: str,
+            module_name: str,
+            line_no: int,
         ) -> None:
-            func_name = fn.__name__
-            module_name = fn.__module__
-            line_no = fn.__code__.co_firstlineno
             elapsed_ms = round((time.time() - start_time) * 1000, 2)
 
             # Prepare result for logging
@@ -449,15 +455,14 @@ def log_function_call(
             func_logger.debug("%s -> %s (%sms)", func_name, result_for_log, elapsed_ms)
 
         def _log_call_error(
-            fn: Callable[..., Any],
             error: Exception,
             start_time: float,
             func_logger: logging.Logger,
             has_structured: bool,
+            func_name: str,
+            module_name: str,
+            line_no: int,
         ) -> None:
-            func_name = fn.__name__
-            module_name = fn.__module__
-            line_no = fn.__code__.co_firstlineno
             elapsed_ms = round((time.time() - start_time) * 1000, 2)
 
             if has_structured:
@@ -484,32 +489,62 @@ def log_function_call(
 
         @wraps(fn)
         def wrapper(*args: Any, **kwargs: Any) -> T:
-            func_logger, has_structured, start_time = _log_call_start(
-                fn, args, kwargs, sensitive_set
+            func_logger, has_structured, start_time, func_name, module_name, line_no = (
+                _log_call_start(fn, args, kwargs, sensitive_set)
             )
             try:
                 result = fn(*args, **kwargs)
                 _log_call_success(
-                    fn, result, start_time, sensitive_set, func_logger, has_structured
+                    result,
+                    start_time,
+                    sensitive_set,
+                    func_logger,
+                    has_structured,
+                    func_name,
+                    module_name,
+                    line_no,
                 )
                 return result
             except Exception as e:
-                _log_call_error(fn, e, start_time, func_logger, has_structured)
+                _log_call_error(
+                    e,
+                    start_time,
+                    func_logger,
+                    has_structured,
+                    func_name,
+                    module_name,
+                    line_no,
+                )
                 raise
 
         @wraps(fn)
         async def async_wrapper(*args: Any, **kwargs: Any) -> T:
-            func_logger, has_structured, start_time = _log_call_start(
-                fn, args, kwargs, sensitive_set
+            func_logger, has_structured, start_time, func_name, module_name, line_no = (
+                _log_call_start(fn, args, kwargs, sensitive_set)
             )
             try:
                 result = await fn(*args, **kwargs)  # type: ignore[misc]
                 _log_call_success(
-                    fn, result, start_time, sensitive_set, func_logger, has_structured
+                    result,
+                    start_time,
+                    sensitive_set,
+                    func_logger,
+                    has_structured,
+                    func_name,
+                    module_name,
+                    line_no,
                 )
                 return result  # type: ignore[no-any-return]
             except Exception as e:
-                _log_call_error(fn, e, start_time, func_logger, has_structured)
+                _log_call_error(
+                    e,
+                    start_time,
+                    func_logger,
+                    has_structured,
+                    func_name,
+                    module_name,
+                    line_no,
+                )
                 raise
 
         if asyncio.iscoroutinefunction(fn):
