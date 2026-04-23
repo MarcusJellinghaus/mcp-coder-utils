@@ -13,7 +13,7 @@ When in doubt, keep it in the consumer until a second consumer needs it.
 
 ## MCP Tools — mandatory
 
-Use MCP tools for **all** operations. Never use `Read`, `Write`, `Edit`, or `Bash` for tasks that have an MCP equivalent.
+**Do NOT use native Claude Code file tools** (`Read`, `Write`, `Edit`, `Glob`, `Grep`, `Bash`) for any operation that has an MCP equivalent. Always use the `mcp__workspace__*` tools instead. This applies to all file reading, writing, editing, searching, listing, and git operations.
 
 ### Tool mapping
 
@@ -27,10 +27,10 @@ Use MCP tools for **all** operations. Never use `Read`, `Write`, `Edit`, or `Bas
 | Move file | `mcp__workspace__move_file` |
 | List directory | `mcp__workspace__list_directory` |
 | Search files | `mcp__workspace__search_files` |
+| Search reference files | `mcp__workspace__search_reference_files` |
 | Read reference project | `mcp__workspace__read_reference_file` |
 | List reference dir | `mcp__workspace__list_reference_directory` |
 | Get reference projects | `mcp__workspace__get_reference_projects` |
-| Search reference files | `mcp__workspace__search_reference_files` |
 | Run pytest | `mcp__tools-py__run_pytest_check` |
 | Run pylint | `mcp__tools-py__run_pylint_check` |
 | Run mypy | `mcp__tools-py__run_mypy_check` |
@@ -39,6 +39,14 @@ Use MCP tools for **all** operations. Never use `Read`, `Write`, `Edit`, or `Bas
 | Format code (black+isort) | `mcp__tools-py__run_format_code` |
 | Get library source | `mcp__tools-py__get_library_source` |
 | Refactoring | `mcp__tools-py__move_symbol`, `move_module`, `rename_symbol`, `list_symbols`, `find_references` |
+| Git (read-only) | `mcp__workspace__git` |
+| Get base branch | `mcp__workspace__get_base_branch` |
+| Check file size | `mcp__workspace__check_file_size` |
+| Check branch status | `mcp__workspace__check_branch_status` |
+| List GitHub issues | `mcp__workspace__github_issue_list` |
+| View GitHub issue | `mcp__workspace__github_issue_view` |
+| View GitHub PR | `mcp__workspace__github_pr_view` |
+| Search GitHub | `mcp__workspace__github_search` |
 
 ### Reference projects
 
@@ -65,23 +73,18 @@ All checks must pass before proceeding.
 
 ## Git operations
 
-**MCP tools (preferred):**
+**Prefer MCP tools** for read-only git operations: use `mcp__workspace__git` with the `command` parameter (log, diff, status, merge_base, show, branch, fetch, rev_parse, ls_tree, ls_files, ls_remote). These run without permission prompts.
 
-| Task | MCP tool |
-|------|----------|
-| Git status | `mcp__workspace__git_status` |
-| Git diff | `mcp__workspace__git_diff` |
-| Git log | `mcp__workspace__git_log` |
-| Git merge-base | `mcp__workspace__git_merge_base` |
+**Compact diff:** `mcp__workspace__git` with command `"diff"` includes compact diff by default — detects moved code, collapses unchanged blocks. Use `compact=False` for raw output.
 
-**Bash (no MCP equivalent):**
+**Bash commands** for git operations that have no MCP equivalent:
 
 ```
-git commit / fetch / show / ls-tree
-mcp-coder check branch-status      # CI status, rebase needs, task completion, labels
-mcp-coder check file-size           # find files exceeding line-count threshold
+git commit / git add
 mcp-coder gh-tool set-status <label>  # change issue workflow status label
 ```
+
+**Status labels:** use `mcp-coder gh-tool set-status` to change issue workflow status — never use raw `gh issue edit` with label flags.
 
 **Before every commit:** run `mcp__tools-py__run_format_code`, then stage and commit.
 
