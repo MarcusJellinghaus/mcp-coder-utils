@@ -17,21 +17,30 @@ No new modules, classes, or abstractions. This is a **contained change** within
 
 ### How It Works
 
-Inside `decorator()`, after defining the existing sync `wrapper`, we:
+Inside `decorator()`, we extract the shared logging logic into three private
+helper functions to avoid duplicating the wrapper body:
 
-1. Define an `async def async_wrapper` that mirrors `wrapper` but uses
-   `await fn(*args, **kwargs)` instead of `fn(*args, **kwargs)`
-2. Use `asyncio.iscoroutinefunction(fn)` to decide which wrapper to return
+1. `_log_call_start(fn, args, kwargs, sensitive_set, has_structured)` — handles
+   parameter serialization, redaction, and start logging
+2. `_log_call_success(fn, result, start_time, sensitive_set, has_structured)` —
+   handles timing calculation and result logging
+3. `_log_call_error(fn, error, start_time, has_structured)` — handles error logging
 
-The two wrappers share identical logging logic (params, timing, redaction,
-structured logging). The duplication is intentional — extracting helpers would
-add indirection for a single `await` keyword difference. KISS over DRY here.
+Both `wrapper` (sync) and `async_wrapper` (async) become thin functions that:
+1. Call `_log_call_start(...)` to log parameters
+2. Execute `fn(*args, **kwargs)` or `await fn(*args, **kwargs)`
+3. Call `_log_call_success(...)` or `_log_call_error(...)` in try/except
+
+The `asyncio.iscoroutinefunction(fn)` check determines which wrapper to return.
 
 ### Type Signatures
 
 The existing `@overload` signatures (`Callable[..., T] -> Callable[..., T]`)
 already handle async functions correctly because mypy treats `T` as the
 awaited return type. No new overloads needed.
+
+Deviation from issue decision: the existing overloads already handle async via
+TypeVar inference, so explicit Awaitable overloads are unnecessary.
 
 ### Test Infrastructure
 
@@ -42,8 +51,8 @@ which only affects `async def` test functions — zero impact on existing sync t
 
 | File | Change |
 |------|--------|
-| `src/mcp_coder_utils/log_utils.py` | Add `import asyncio`, add `async_wrapper`, add `iscoroutinefunction` branch |
-| `tests/test_log_utils.py` | Add `TestLogFunctionCallAsync` test class (3 tests) |
+| `src/mcp_coder_utils/log_utils.py` | Add `import asyncio`, extract `_log_call_start`/`_log_call_success`/`_log_call_error` helpers, add `async_wrapper`, add `iscoroutinefunction` branch |
+| `tests/test_log_utils.py` | Add `TestLogFunctionCallAsync` test class (4 tests) |
 | `pyproject.toml` | Add `pytest-asyncio` to test deps, add `asyncio_mode = "auto"` |
 
 ## Files Created
