@@ -1,9 +1,5 @@
-feat(log_utils): support async functions in log_function_call decorator
+style(log_utils): fix black formatting in log_utils.py
 
-Extract shared logging logic into _log_call_start, _log_call_success,
-and _log_call_error helpers to avoid duplicating the wrapper body.
-
-Add async_wrapper that awaits the decorated function, selected at
-decoration time via asyncio.iscoroutinefunction(fn).
-
-Remove @pytest.mark.skip markers from async tests added in Step 1.
+Collapse parenthesized ternary expression onto a single line where it
+fits within the 88-character line limit, matching black's expected
+formatting output.

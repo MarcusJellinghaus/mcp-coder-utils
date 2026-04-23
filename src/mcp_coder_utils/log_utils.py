@@ -423,9 +423,7 @@ def log_function_call(
                     json.dumps(result)  # Test if result is JSON serializable
                     serializable_result = result
                 except (TypeError, OverflowError):
-                    serializable_result = (
-                        str(result) if result is not None else None
-                    )
+                    serializable_result = str(result) if result is not None else None
 
             # Apply redaction to result if it's a dict
             if sensitive_set and isinstance(serializable_result, dict):
@@ -448,9 +446,7 @@ def log_function_call(
                     lineno=line_no,
                 )
 
-            func_logger.debug(
-                "%s -> %s (%sms)", func_name, result_for_log, elapsed_ms
-            )
+            func_logger.debug("%s -> %s (%sms)", func_name, result_for_log, elapsed_ms)
 
         def _log_call_error(
             fn: Callable[..., Any],
