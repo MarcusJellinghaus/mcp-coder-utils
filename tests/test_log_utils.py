@@ -792,7 +792,6 @@ class TestLogFunctionCallWithSensitiveFields:
 class TestLogFunctionCallAsync:
     """Tests for log_function_call decorator with async functions."""
 
-    @pytest.mark.skip(reason="async support not yet implemented")
     async def test_log_function_call_async_basic(self) -> None:
         """Test that the decorator works with basic async functions."""
         with patch("logging.getLogger") as mock_get_logger:
@@ -808,7 +807,6 @@ class TestLogFunctionCallAsync:
             assert result == 3
             assert mock_logger.debug.call_count == 2
 
-    @pytest.mark.skip(reason="async support not yet implemented")
     async def test_log_function_call_async_exception(self) -> None:
         """Test that exceptions from async functions propagate correctly."""
         with patch("logging.getLogger") as mock_get_logger:
@@ -824,7 +822,6 @@ class TestLogFunctionCallAsync:
 
             assert mock_logger.error.called is True
 
-    @pytest.mark.skip(reason="async support not yet implemented")
     async def test_log_function_call_async_with_sensitive_fields(self) -> None:
         """Test that sensitive fields are redacted for async functions."""
         with patch("logging.getLogger") as mock_get_logger:
@@ -844,7 +841,6 @@ class TestLogFunctionCallAsync:
             assert "***" in log_params
             assert "secret123" not in log_params
 
-    @pytest.mark.skip(reason="async support not yet implemented")
     async def test_log_function_call_async_method_skips_self(self) -> None:
         """Test that self is skipped when decorating an async method."""
         with patch("logging.getLogger") as mock_get_logger:

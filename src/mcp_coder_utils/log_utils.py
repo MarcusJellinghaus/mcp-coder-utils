@@ -1,5 +1,6 @@
 """Shared logging configuration and utilities."""
 
+import asyncio
 import json
 import logging
 import os
@@ -318,8 +319,12 @@ def log_function_call(
     sensitive_set = set(sensitive_fields) if sensitive_fields else set()
 
     def decorator(fn: Callable[..., T]) -> Callable[..., T]:
-        @wraps(fn)
-        def wrapper(*args: Any, **kwargs: Any) -> T:
+        def _log_call_start(
+            fn: Callable[..., Any],
+            args: tuple[Any, ...],
+            kwargs: dict[str, Any],
+            sensitive_set: set[str],
+        ) -> tuple[logging.Logger, bool, float]:
             func_name = fn.__name__
             module_name = fn.__module__
             line_no = fn.__code__.co_firstlineno
@@ -387,85 +392,132 @@ def log_function_call(
                 "%s(%s)", func_name, json.dumps(params_for_log, default=str)
             )
 
-            # Execute function and measure time
-            start_time = time.time()
-            try:
-                result = fn(*args, **kwargs)
-                elapsed_ms = round((time.time() - start_time) * 1000, 2)
+            return func_logger, has_structured, time.time()
 
-                # Prepare result for logging
-                result_for_log: Any
-                serializable_result: Any
-                if isinstance(result, (list, dict)) and len(str(result)) > 1000:
-                    result_for_log = (
-                        f"<Large result of type {type(result).__name__}, "
-                        f"length: {len(str(result))}>"
-                    )
-                    serializable_result = result_for_log
-                else:
-                    result_for_log = result
-                    # Make result JSON serializable for structured logging
-                    try:
-                        json.dumps(result)  # Test if result is JSON serializable
-                        serializable_result = result
-                    except (TypeError, OverflowError):
-                        serializable_result = (
-                            str(result) if result is not None else None
-                        )
+        def _log_call_success(
+            fn: Callable[..., Any],
+            result: Any,
+            start_time: float,
+            sensitive_set: set[str],
+            func_logger: logging.Logger,
+            has_structured: bool,
+        ) -> None:
+            func_name = fn.__name__
+            module_name = fn.__module__
+            line_no = fn.__code__.co_firstlineno
+            elapsed_ms = round((time.time() - start_time) * 1000, 2)
 
-                # Apply redaction to result if it's a dict
-                if sensitive_set and isinstance(serializable_result, dict):
-                    serializable_result = redact_for_logging(
-                        serializable_result, sensitive_set
-                    )
-                if sensitive_set and isinstance(result_for_log, dict):
-                    result_for_log = redact_for_logging(result_for_log, sensitive_set)
-
-                # Log completion
-                if has_structured:
-                    structlogger.debug(
-                        "Function completed",
-                        function=func_name,
-                        execution_time_ms=elapsed_ms,
-                        status="success",
-                        result=serializable_result,
-                        module=module_name,
-                        lineno=line_no,
-                    )
-
-                func_logger.debug(
-                    "%s -> %s (%sms)", func_name, result_for_log, elapsed_ms
+            # Prepare result for logging
+            result_for_log: Any
+            serializable_result: Any
+            if isinstance(result, (list, dict)) and len(str(result)) > 1000:
+                result_for_log = (
+                    f"<Large result of type {type(result).__name__}, "
+                    f"length: {len(str(result))}>"
                 )
-                return result
-
-            except (
-                Exception
-            ) as e:  # pylint: disable=broad-exception-caught  # TODO: narrow exception type
-                # Log exceptions
-                elapsed_ms = round((time.time() - start_time) * 1000, 2)
-
-                if has_structured:
-                    structlogger.error(
-                        "Function failed",
-                        function=func_name,
-                        execution_time_ms=elapsed_ms,
-                        error_type=type(e).__name__,
-                        error_message=str(e),
-                        module=module_name,
-                        lineno=line_no,
-                        exc_info=True,
+                serializable_result = result_for_log
+            else:
+                result_for_log = result
+                # Make result JSON serializable for structured logging
+                try:
+                    json.dumps(result)  # Test if result is JSON serializable
+                    serializable_result = result
+                except (TypeError, OverflowError):
+                    serializable_result = (
+                        str(result) if result is not None else None
                     )
 
-                func_logger.error(
-                    "%s FAILED: %s: %s (%sms)",
-                    func_name,
-                    type(e).__name__,
-                    str(e),
-                    elapsed_ms,
+            # Apply redaction to result if it's a dict
+            if sensitive_set and isinstance(serializable_result, dict):
+                serializable_result = redact_for_logging(
+                    serializable_result, sensitive_set
+                )
+            if sensitive_set and isinstance(result_for_log, dict):
+                result_for_log = redact_for_logging(result_for_log, sensitive_set)
+
+            # Log completion
+            if has_structured:
+                structlogger = structlog.get_logger(module_name)
+                structlogger.debug(
+                    "Function completed",
+                    function=func_name,
+                    execution_time_ms=elapsed_ms,
+                    status="success",
+                    result=serializable_result,
+                    module=module_name,
+                    lineno=line_no,
+                )
+
+            func_logger.debug(
+                "%s -> %s (%sms)", func_name, result_for_log, elapsed_ms
+            )
+
+        def _log_call_error(
+            fn: Callable[..., Any],
+            error: Exception,
+            start_time: float,
+            func_logger: logging.Logger,
+            has_structured: bool,
+        ) -> None:
+            func_name = fn.__name__
+            module_name = fn.__module__
+            line_no = fn.__code__.co_firstlineno
+            elapsed_ms = round((time.time() - start_time) * 1000, 2)
+
+            if has_structured:
+                structlogger = structlog.get_logger(module_name)
+                structlogger.error(
+                    "Function failed",
+                    function=func_name,
+                    execution_time_ms=elapsed_ms,
+                    error_type=type(error).__name__,
+                    error_message=str(error),
+                    module=module_name,
+                    lineno=line_no,
                     exc_info=True,
                 )
+
+            func_logger.error(
+                "%s FAILED: %s: %s (%sms)",
+                func_name,
+                type(error).__name__,
+                str(error),
+                elapsed_ms,
+                exc_info=True,
+            )
+
+        @wraps(fn)
+        def wrapper(*args: Any, **kwargs: Any) -> T:
+            func_logger, has_structured, start_time = _log_call_start(
+                fn, args, kwargs, sensitive_set
+            )
+            try:
+                result = fn(*args, **kwargs)
+                _log_call_success(
+                    fn, result, start_time, sensitive_set, func_logger, has_structured
+                )
+                return result
+            except Exception as e:
+                _log_call_error(fn, e, start_time, func_logger, has_structured)
                 raise
 
+        @wraps(fn)
+        async def async_wrapper(*args: Any, **kwargs: Any) -> T:
+            func_logger, has_structured, start_time = _log_call_start(
+                fn, args, kwargs, sensitive_set
+            )
+            try:
+                result = await fn(*args, **kwargs)  # type: ignore[misc]
+                _log_call_success(
+                    fn, result, start_time, sensitive_set, func_logger, has_structured
+                )
+                return result  # type: ignore[no-any-return]
+            except Exception as e:
+                _log_call_error(fn, e, start_time, func_logger, has_structured)
+                raise
+
+        if asyncio.iscoroutinefunction(fn):
+            return cast(Callable[..., T], async_wrapper)
         return cast(Callable[..., T], wrapper)
 
     # Handle both @log_function_call and @log_function_call(sensitive_fields=[...])
