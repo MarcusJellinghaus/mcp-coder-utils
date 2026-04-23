@@ -1,0 +1,10 @@
+feat(test): add pytest-asyncio and async tests for log_function_call
+
+- Add pytest-asyncio to test dependencies in pyproject.toml
+- Enable asyncio_mode = "auto" in pytest configuration
+- Add TestLogFunctionCallAsync class with 4 skipped async test cases:
+  - test_log_function_call_async_basic
+  - test_log_function_call_async_exception
+  - test_log_function_call_async_with_sensitive_fields
+  - test_log_function_call_async_method_skips_self
+- Tests are marked @pytest.mark.skip pending async support implementation

@@ -21,7 +21,7 @@ This tracks **Feature Implementation** consisting of multiple **Tasks**.
 
 ## Tasks
 
-- [ ] [Step 1](steps/step_1.md) — Add `pytest-asyncio` dependency and async tests for `log_function_call`
+- [x] [Step 1](steps/step_1.md) — Add `pytest-asyncio` dependency and async tests for `log_function_call`
 - [ ] [Step 2](steps/step_2.md) — Implement async support in `log_function_call` (extract helpers + async wrapper)
 
 ## Pull Request
