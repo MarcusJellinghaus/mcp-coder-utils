@@ -787,3 +787,77 @@ class TestLogFunctionCallWithSensitiveFields:
             result: int = get_number()
             assert result == 42
             assert mock_logger.debug.call_count == 2
+
+
+class TestLogFunctionCallAsync:
+    """Tests for log_function_call decorator with async functions."""
+
+    async def test_log_function_call_async_basic(self) -> None:
+        """Test that the decorator works with basic async functions."""
+        with patch("logging.getLogger") as mock_get_logger:
+            mock_logger = MagicMock()
+            mock_get_logger.return_value = mock_logger
+
+            @log_function_call
+            async def add(a: int, b: int) -> int:
+                return a + b
+
+            result = await add(1, 2)
+
+            assert result == 3
+            assert mock_logger.debug.call_count == 2
+
+    async def test_log_function_call_async_exception(self) -> None:
+        """Test that exceptions from async functions propagate correctly."""
+        with patch("logging.getLogger") as mock_get_logger:
+            mock_logger = MagicMock()
+            mock_get_logger.return_value = mock_logger
+
+            @log_function_call
+            async def failing() -> None:
+                raise ValueError("async error")
+
+            with pytest.raises(ValueError):
+                await failing()
+
+            assert mock_logger.error.called is True
+
+    async def test_log_function_call_async_with_sensitive_fields(self) -> None:
+        """Test that sensitive fields are redacted for async functions."""
+        with patch("logging.getLogger") as mock_get_logger:
+            mock_logger = MagicMock()
+            mock_get_logger.return_value = mock_logger
+
+            @log_function_call(sensitive_fields=["token"])
+            async def auth(token: str, username: str) -> bool:
+                _ = token, username
+                return True
+
+            await auth(token="secret123", username="user")
+
+            first_call = mock_logger.debug.call_args_list[0]
+            log_params = first_call[0][2]
+
+            assert "***" in log_params
+            assert "secret123" not in log_params
+
+    async def test_log_function_call_async_method_skips_self(self) -> None:
+        """Test that self is skipped when decorating an async method."""
+        with patch("logging.getLogger") as mock_get_logger:
+            mock_logger = MagicMock()
+            mock_get_logger.return_value = mock_logger
+
+            class MyService:
+                @log_function_call
+                async def process(self, name: str) -> str:
+                    return f"processed:{name}"
+
+            svc = MyService()
+            result = await svc.process("test")
+
+            assert result == "processed:test"
+            assert mock_logger.debug.call_count == 2
+
+            first_call = mock_logger.debug.call_args_list[0]
+            log_params = first_call[0][2]
+            assert "self" not in log_params
