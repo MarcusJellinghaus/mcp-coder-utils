@@ -1,5 +1,0 @@
-style(log_utils): fix black formatting in log_utils.py
-
-Collapse parenthesized ternary expression onto a single line where it
-fits within the 88-character line limit, matching black's expected
-formatting output.
