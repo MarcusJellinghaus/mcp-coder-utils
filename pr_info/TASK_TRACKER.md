@@ -21,6 +21,11 @@ This tracks **Feature Implementation** consisting of multiple **Tasks**.
 
 ## Tasks
 
-<!-- Tasks populated from pr_info/steps/ by prepare_task_tracker -->
+### Step 1: Add stdin piping support to stream_subprocess
+- [ ] Implementation: add `TestStreamStdinInput` test + fix `_generate()` to pipe `input_data` to stdin
+- [ ] Quality checks: pylint, pytest, mypy — fix all issues
+- [ ] Commit message prepared
 
 ## Pull Request
+- [ ] PR review: verify all steps complete, tests pass, no regressions
+- [ ] PR summary written
