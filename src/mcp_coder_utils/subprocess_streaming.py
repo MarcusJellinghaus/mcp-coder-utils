@@ -95,7 +95,9 @@ def stream_subprocess(
         env = prepare_env(command, options.env, options.env_remove)
         start_new_session = os.name != "nt"
         start_time = time.time()
-        stdin_pipe = subprocess.PIPE if options.input_data is not None else subprocess.DEVNULL
+        stdin_pipe = (
+            subprocess.PIPE if options.input_data is not None else subprocess.DEVNULL
+        )
 
         process = subprocess.Popen(
             command,
