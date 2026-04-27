@@ -95,9 +95,11 @@ def stream_subprocess(
         env = prepare_env(command, options.env, options.env_remove)
         start_new_session = os.name != "nt"
         start_time = time.time()
+        stdin_pipe = subprocess.PIPE if options.input_data else subprocess.DEVNULL
 
         process = subprocess.Popen(
             command,
+            stdin=stdin_pipe,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             cwd=options.cwd,
@@ -108,6 +110,10 @@ def stream_subprocess(
             shell=options.shell,
             start_new_session=start_new_session,
         )
+
+        if options.input_data and process.stdin:
+            process.stdin.write(options.input_data)
+            process.stdin.close()
 
         last_activity = time.time()
         watchdog_triggered = False

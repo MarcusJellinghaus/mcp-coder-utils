@@ -22,9 +22,9 @@ This tracks **Feature Implementation** consisting of multiple **Tasks**.
 ## Tasks
 
 ### Step 1: Add stdin piping support to stream_subprocess
-- [ ] Implementation: add `TestStreamStdinInput` test + fix `_generate()` to pipe `input_data` to stdin
-- [ ] Quality checks: pylint, pytest, mypy — fix all issues
-- [ ] Commit message prepared
+- [x] Implementation: add `TestStreamStdinInput` test + fix `_generate()` to pipe `input_data` to stdin
+- [x] Quality checks: pylint, pytest, mypy — fix all issues
+- [x] Commit message prepared
 
 ## Pull Request
 - [ ] PR review: verify all steps complete, tests pass, no regressions

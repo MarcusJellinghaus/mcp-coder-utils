@@ -1,0 +1,11 @@
+fix: pipe input_data to stdin in stream_subprocess
+
+stream_subprocess() silently dropped options.input_data because _generate()
+never set stdin=subprocess.PIPE and never wrote the data to the process.
+
+Changes:
+- Set stdin to subprocess.PIPE when input_data is provided, else DEVNULL
+- Write input_data and close stdin before the stdout read loop to avoid deadlock
+- Add TestStreamStdinInput with a happy-path test verifying stdin piping
+
+Fixes #26
