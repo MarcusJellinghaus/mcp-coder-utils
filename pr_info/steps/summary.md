@@ -19,6 +19,8 @@ The fix aligns `stream_subprocess()` with the existing `_run_subprocess()` patte
 | `stdin` arg in `Popen` | Missing (inherits parent) | `subprocess.PIPE` when `input_data` set, else `subprocess.DEVNULL` |
 | `input_data` handling | Ignored | Written to `process.stdin`, then stdin closed before read loop |
 
+**Note:** Defaulting `stdin` to `DEVNULL` (instead of inheriting parent stdin) when no `input_data` is set is an intentional behavioral change beyond the bug fix — it prevents the child process from inheriting the MCP server's stdin and aligns with `_run_subprocess()`. See issue #26 Decisions table.
+
 **Key constraint:** stdin must be written and closed *before* entering the stdout read loop to avoid deadlock.
 
 ## Files Modified
