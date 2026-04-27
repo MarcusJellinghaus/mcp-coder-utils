@@ -9,6 +9,7 @@ import sys
 
 import pytest
 
+from mcp_coder_utils.subprocess_runner import CommandOptions
 from mcp_coder_utils.subprocess_streaming import StreamResult, stream_subprocess
 
 
@@ -84,3 +85,16 @@ class TestStreamInactivityWatchdog:
         assert cmd_result.return_code == 0
         assert cmd_result.timed_out is False
         assert cmd_result.runner_type == "streaming"
+
+
+class TestStreamStdinInput:
+    """Tests for piping input_data to subprocess stdin."""
+
+    def test_stream_subprocess_pipes_input_data_to_stdin(self) -> None:
+        """input_data in CommandOptions should be written to the process stdin."""
+        script = "import sys; data = sys.stdin.read(); print(data)"
+        options = CommandOptions(input_data="hello from stdin")
+        result = stream_subprocess([sys.executable, "-c", script], options=options)
+        lines = list(result)
+        assert "hello from stdin" in lines
+        assert result.result.return_code == 0
