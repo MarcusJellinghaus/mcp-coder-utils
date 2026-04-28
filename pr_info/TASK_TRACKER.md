@@ -21,6 +21,16 @@ This tracks **Feature Implementation** consisting of multiple **Tasks**.
 
 ## Tasks
 
-<!-- Tasks populated from pr_info/steps/ by prepare_task_tracker -->
+### Step 1: Add notify-downstream workflow
+
+See [step_1.md](./steps/step_1.md) for details.
+
+- [ ] Implementation: create `.github/workflows/notify-downstream.yml` with the exact YAML content from step_1.md
+- [ ] Quality checks: pylint, pytest, mypy — fix all issues
+- [ ] Commit message prepared: `Add notify-downstream workflow for cross-repo CI (#28)`
 
 ## Pull Request
+
+- [ ] PR review
+- [ ] PR summary
+
