@@ -117,8 +117,7 @@ none of the targeted source/test files change. Run them anyway to confirm
 no incidental regressions:
 
 - `mcp__tools-py__run_pylint_check`
-- `mcp__tools-py__run_pytest_check` with
-  `extra_args=["-n", "auto", "-m", "not git_integration and not claude_cli_integration and not claude_api_integration and not formatter_integration and not github_integration and not langchain_integration"]`
+- `mcp__tools-py__run_pytest_check` with `extra_args=["-n", "auto"]`
 - `mcp__tools-py__run_mypy_check`
 
 ## Commit
