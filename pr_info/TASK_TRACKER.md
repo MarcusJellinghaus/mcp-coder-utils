@@ -25,9 +25,9 @@ This tracks **Feature Implementation** consisting of multiple **Tasks**.
 
 See [step_1.md](./steps/step_1.md) for details.
 
-- [ ] Implementation: create `.github/workflows/notify-downstream.yml` with the exact YAML content from step_1.md
-- [ ] Quality checks: pylint, pytest, mypy — fix all issues
-- [ ] Commit message prepared: `Add notify-downstream workflow for cross-repo CI (#28)`
+- [x] Implementation: create `.github/workflows/notify-downstream.yml` with the exact YAML content from step_1.md
+- [x] Quality checks: pylint, pytest, mypy — fix all issues
+- [x] Commit message prepared: `Add notify-downstream workflow for cross-repo CI (#28)`
 
 ## Pull Request
 
