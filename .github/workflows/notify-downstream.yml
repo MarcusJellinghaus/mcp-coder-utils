@@ -1,0 +1,35 @@
+name: Notify downstream of main update
+
+# When this repo's main changes, fan out repository_dispatch events to
+# mcp-workspace, mcp-tools-py, and mcp_coder so each can re-run mypy
+# against the latest main of this package.
+#
+# Requires repo secret DOWNSTREAM_PAT — a fine-grained PAT with
+#   Contents: Read & write   (on each target repo)
+#   Metadata: Read
+# Create at: https://github.com/settings/personal-access-tokens/new
+# Add to this repo via: Settings → Secrets and variables → Actions → New repository secret.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  dispatch-to-downstream:
+    name: dispatch-to-${{ matrix.downstream }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        downstream: [mcp-workspace, mcp-tools-py, mcp_coder]
+    steps:
+      - name: Send upstream-main-updated to ${{ matrix.downstream }}
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.DOWNSTREAM_PAT }}
+          repository: MarcusJellinghaus/${{ matrix.downstream }}
+          event-type: upstream-main-updated
+          client-payload: '{"upstream": "mcp-coder-utils", "sha": "${{ github.sha }}"}'
