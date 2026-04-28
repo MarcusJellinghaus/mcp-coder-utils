@@ -135,7 +135,7 @@ Add notify-downstream workflow for cross-repo CI (#28)
 > the exact YAML content shown in step_1.md (verbatim from issue #28). Do
 > not modify any other file. Do not create the `DOWNSTREAM_PAT` secret —
 > that is a manual user action documented in the summary. After saving the
-> file, run the three mandatory MCP checks (pylint, pytest with the standard
-> exclusion markers, mypy) to confirm no regressions, then produce a single
+> file, run the three mandatory MCP checks (pylint, pytest with
+> extra_args=["-n", "auto"], mypy) to confirm no regressions, then produce a single
 > commit with the message `Add notify-downstream workflow for cross-repo CI
 > (#28)`.

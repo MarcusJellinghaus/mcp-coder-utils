@@ -25,3 +25,18 @@ Branch: `28-add-cross-repo-ci-notify-downstream-of-main-updates`
 **Changes**: `pr_info/steps/step_1.md` — pytest `extra_args` aligned with CLAUDE.md (markers removed).
 
 **Status**: pending commit
+
+
+## Round 2 — 2026-04-28
+
+**Findings**:
+- "LLM prompt" section in `step_1.md` still referenced "standard exclusion markers" — leftover wording from before round 1's `extra_args` fix (minor, mechanical).
+
+**Decisions**:
+- Accept: align "LLM prompt" wording with the corrected Checks block and CLAUDE.md.
+
+**User decisions**: None — wording-consistency only.
+
+**Changes**: `pr_info/steps/step_1.md` — "LLM prompt" section now references `extra_args=["-n", "auto"]` instead of "standard exclusion markers".
+
+**Status**: pending commit
