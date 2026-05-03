@@ -43,9 +43,6 @@ nul
 .vscodeclaude_start.bat
 .vscodeclaude_start.sh
 
-# MCP configuration files (may contain sensitive paths)
-.mcp.*.json
-
 # mcp-coder temp folder
 /.mcp-coder-tmp/
 
