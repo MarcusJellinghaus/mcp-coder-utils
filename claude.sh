@@ -50,6 +50,8 @@ if [ -f "$PROJECT_VENV/bin/activate" ]; then
 else
     # Self-hosting fallback: no .venv, so tool env is also the project env
     echo "No project .venv found — using tool environment for both."
+    # VIRTUAL_ENV is set for informational/echo purposes only; PATH manipulation
+    # is done explicitly below (Step 5). We do NOT source the activate script.
     export VIRTUAL_ENV="$MCP_CODER_VENV_DIR"
 fi
 
