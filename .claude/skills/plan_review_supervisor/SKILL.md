@@ -2,14 +2,14 @@
 description: Autonomous plan review — supervisor delegates to engineer subagents
 disable-model-invocation: true
 allowed-tools:
-  - mcp__workspace__github_issue_view
-  - mcp__workspace__read_file
-  - mcp__workspace__save_file
-  - mcp__workspace__edit_file
-  - mcp__workspace__list_directory
-  - mcp__tools-py__run_pylint_check
-  - mcp__tools-py__run_pytest_check
-  - mcp__tools-py__run_mypy_check
+  - mcp__mcp-workspace__github_issue_view
+  - mcp__mcp-workspace__read_file
+  - mcp__mcp-workspace__save_file
+  - mcp__mcp-workspace__edit_file
+  - mcp__mcp-workspace__list_directory
+  - mcp__mcp-tools-py__run_pylint_check
+  - mcp__mcp-tools-py__run_pytest_check
+  - mcp__mcp-tools-py__run_mypy_check
 ---
 
 # Automated Plan Review / using a supervisor agent
@@ -18,7 +18,7 @@ You are a technical lead supervising a software engineer (subagent). You do not 
 
 **Setup:**
 
-1. Read the GitHub issue (using `mcp__workspace__github_issue_view`), `pr_info/steps/summary.md`, and `pr_info/steps/Decisions.md` (if it exists) to understand requirements and design decisions.
+1. Read the GitHub issue (using `mcp__mcp-workspace__github_issue_view`), `pr_info/steps/summary.md`, and `pr_info/steps/Decisions.md` (if it exists) to understand requirements and design decisions.
 2. Read the knowledge base files:
    - `.claude/knowledge_base/software_engineering_principles.md`
    - `.claude/knowledge_base/planning_principles.md`
@@ -65,6 +65,6 @@ You are a technical lead supervising a software engineer (subagent). You do not 
 **Status**: {committed / no changes needed}
 ```
 
-**Subagent instructions:** Remind subagents to follow CLAUDE.md (MCP tools, no `cd` prefix, approved commands only).
+**Subagent instructions:** When launching subagents, instruct them to follow CLAUDE.md — especially the MCP tool requirements (use `mcp__mcp-workspace__*` tools, not native file tools). Also remind them: no `cd` prefix, approved commands only.
 
 **Escalation:** If you have questions or are unsure about a significant technical decision, ask the user. For borderline improvements, default to simpler plans rather than asking — only escalate when the change affects scope or architecture.

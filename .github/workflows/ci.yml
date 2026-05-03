@@ -7,6 +7,9 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   # Matrix approach: Each check runs as independent job with individual pass/fail status
   # fail-fast: false ensures all checks complete even if one fails
