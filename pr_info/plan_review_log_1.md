@@ -20,3 +20,34 @@
 - summary.md: corrected "mypy strict mode" wording.
 
 **Status**: committed (see commit hash from commit agent).
+
+
+## Round 2 — 2026-05-04
+
+**Findings**:
+- Verified all six round-1 fixes (C1, C2, C3, A1, A2, A3) are in place at HEAD `6c7fa37`.
+- A1-r2 (Accept-or-skip, cosmetic): summary.md sibling-pattern list mentions `subprocess_runner.py` while architecture doc also lists `subprocess_streaming.py` — purely cosmetic, no impact.
+- A2-r2 (Skip): "non-`Path` would not equal a `Path`" rationale is sound; mypy return-type annotation is the real safeguard. No change needed.
+- A3-r2 (Accept-or-skip, cosmetic): issue acceptance bullet 3 "Released so mcp-workspace can pin a concrete minimum version" is a post-merge action and correctly lives outside step_1.md acceptance criteria.
+- No critical findings.
+
+**Decisions**: Skip A1-r2 and A3-r2 (cosmetic, not required for plan correctness — engineer's own assessment).
+
+**User decisions**: None.
+
+**Changes**: None — round produced zero plan modifications.
+
+**Status**: no changes needed.
+
+## Final Status
+
+**Rounds run**: 2
+**Plan files at final state**:
+- `pr_info/steps/summary.md`
+- `pr_info/steps/step_1.md`
+
+**Commits produced by review**:
+- Round 1: `6c7fa37` — "Plan review round 1: fix tool refs, add docstring requirement (#31)"
+- Round 2: no commit (zero changes)
+
+**Outcome**: Plan is **ready for approval and implementation**. All critical findings from round 1 (incorrect MCP tool prefix, bogus pytest marker filter, nonexistent `format_all.sh` reference) are corrected. Acceptance criteria includes the docstring requirement that prevents a `D100` ruff failure on first run. No design/scope questions were raised — only factual corrections.
