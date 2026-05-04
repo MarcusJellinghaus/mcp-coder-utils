@@ -26,6 +26,8 @@
 ```python
 # src/mcp_coder_utils/user_app_data.py
 
+"""Per-user app-data directory helper."""
+
 from pathlib import Path
 
 __all__ = ["get_user_app_data_dir"]
@@ -98,19 +100,19 @@ That is the entire test scope — one parametrized test covering the
 issue's three test bullets. The "returns a `Path` instance" bullet is
 implicit: equality with `Path.home() / ...` (a `Path`) cannot succeed
 against a non-`Path` value, and the return-type annotation is enforced
-by mypy strict mode.
+by mypy (strict by default in `run_mypy_check`).
 
 ## Verification (mandatory before commit)
 
 Run all three MCP checks and ensure each passes:
 
-1. `mcp__tools-py__run_pylint_check`
-2. `mcp__tools-py__run_pytest_check` with
-   `extra_args=["-n", "auto", "-m", "not git_integration and not claude_cli_integration and not claude_api_integration and not formatter_integration and not github_integration and not langchain_integration"]`
-3. `mcp__tools-py__run_mypy_check`
+1. `mcp__mcp-tools-py__run_pylint_check`
+2. `mcp__mcp-tools-py__run_pytest_check` with
+   `extra_args=["-n", "auto"]`
+3. `mcp__mcp-tools-py__run_mypy_check`
 
-Then run `./tools/format_all.sh` (per CLAUDE.md), review the diff, stage,
-and commit.
+Then run `mcp__mcp-tools-py__run_format_code` (per CLAUDE.md), review the
+diff, stage, and commit.
 
 ## Commit
 
@@ -125,6 +127,7 @@ Add user_app_data.get_user_app_data_dir helper (#31)
 - [ ] `mcp_coder_utils.user_app_data.get_user_app_data_dir(app_name)`
       returns `Path.home() / f".{app_name}"` on every platform.
 - [ ] `__all__ = ["get_user_app_data_dir"]` is defined in the new module.
+- [ ] Module has top-level docstring; function has Google-style docstring (Args / Returns / Raises).
 - [ ] No re-export from `mcp_coder_utils/__init__.py`.
 - [ ] Parametrized unit test covers `"mcp_coder"` and `"foo"` cases.
 - [ ] All three MCP quality checks pass (pylint, pytest, mypy).

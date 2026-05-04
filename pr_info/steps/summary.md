@@ -56,9 +56,9 @@ test covering the equality contract for two app names:
 - `get_user_app_data_dir("mcp_coder") == Path.home() / ".mcp_coder"`
 - `get_user_app_data_dir("foo") == Path.home() / ".foo"`
 
-`Path` return type is enforced by the type annotation + mypy strict mode
-and implicit in the equality assertion (a non-`Path` would not equal a
-`Path`). No separate `isinstance` test needed.
+`Path` return type is enforced by the type annotation + mypy (strict by
+default in `run_mypy_check`) and implicit in the equality assertion (a
+non-`Path` would not equal a `Path`). No separate `isinstance` test needed.
 
 ## References
 
