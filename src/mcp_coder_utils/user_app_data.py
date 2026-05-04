@@ -16,8 +16,5 @@ def get_user_app_data_dir(app_name: str) -> Path:
 
     Returns:
         Absolute path under the user's home directory.
-
-    Raises:
-        RuntimeError: If ``Path.home()`` cannot be resolved (mirrors stdlib).
     """
     return Path.home() / f".{app_name}"
