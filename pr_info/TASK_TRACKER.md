@@ -23,7 +23,7 @@ This tracks **Feature Implementation** consisting of multiple **Tasks**.
 
 - [x] [Step 1 — Extract `_parse_level`, widen `log_level`](./steps/step_1.md)
 - [x] [Step 2 — Export formatter symbols in `__all__`](./steps/step_2.md)
-- [ ] [Step 3 — Marker-based idempotent handlers + single structlog config](./steps/step_3.md)
+- [x] [Step 3 — Marker-based idempotent handlers + single structlog config](./steps/step_3.md)
 - [ ] [Step 4 — Add `console_level`: simultaneous file + console logging](./steps/step_4.md)
 
 ## Pull Request

@@ -13,6 +13,7 @@ from mcp_coder_utils.log_utils import (
     STANDARD_LOG_FIELDS,
     CleanFormatter,
     ExtraFieldsFormatter,
+    _HANDLER_MARKER,
     _parse_level,
     log_function_call,
     setup_logging,
@@ -173,6 +174,104 @@ class TestSetupLogging:
         """Test that an invalid log level raises a ValueError."""
         with pytest.raises(ValueError):
             setup_logging("INVALID_LEVEL")
+
+
+class TestSetupLoggingIdempotency:
+    """Tests for marker-based idempotent handler management."""
+
+    def test_repeated_console_calls_single_marked_handler(self) -> None:
+        """Two console-mode calls leave exactly one marked console handler."""
+        root_logger = logging.getLogger()
+        initial_handlers = root_logger.handlers[:]
+        initial_level = root_logger.level
+
+        try:
+            for handler in root_logger.handlers[:]:
+                root_logger.removeHandler(handler)
+
+            setup_logging("INFO")
+            setup_logging("INFO")
+
+            marked = [
+                h
+                for h in root_logger.handlers
+                if getattr(h, _HANDLER_MARKER, False)
+            ]
+            assert len(marked) == 1
+            assert isinstance(marked[0], logging.StreamHandler)
+        finally:
+            for handler in root_logger.handlers[:]:
+                handler.close()
+                root_logger.removeHandler(handler)
+            for handler in initial_handlers:
+                root_logger.addHandler(handler)
+            root_logger.setLevel(initial_level)
+
+    def test_foreign_handler_survives(self) -> None:
+        """A pre-attached unmarked handler survives; ours is still added."""
+        root_logger = logging.getLogger()
+        initial_handlers = root_logger.handlers[:]
+        initial_level = root_logger.level
+        foreign_handler = logging.StreamHandler()
+
+        try:
+            for handler in root_logger.handlers[:]:
+                root_logger.removeHandler(handler)
+            root_logger.addHandler(foreign_handler)
+
+            setup_logging("INFO")
+
+            # Foreign handler untouched.
+            assert foreign_handler in root_logger.handlers
+            assert not getattr(foreign_handler, _HANDLER_MARKER, False)
+
+            # Our marked handler added alongside it.
+            marked = [
+                h
+                for h in root_logger.handlers
+                if getattr(h, _HANDLER_MARKER, False)
+            ]
+            assert len(marked) == 1
+            assert marked[0] is not foreign_handler
+        finally:
+            for handler in root_logger.handlers[:]:
+                handler.close()
+                root_logger.removeHandler(handler)
+            for handler in initial_handlers:
+                root_logger.addHandler(handler)
+            root_logger.setLevel(initial_level)
+
+    def test_repeated_file_calls_single_marked_file_handler(
+        self, tmp_path: Path
+    ) -> None:
+        """Repeated file-mode calls to the same path do not accumulate handlers."""
+        log_file = tmp_path / "logs" / "test.log"
+        root_logger = logging.getLogger()
+        initial_handlers = root_logger.handlers[:]
+        initial_level = root_logger.level
+
+        try:
+            for handler in root_logger.handlers[:]:
+                root_logger.removeHandler(handler)
+
+            setup_logging("DEBUG", str(log_file))
+            setup_logging("DEBUG", str(log_file))
+            setup_logging("DEBUG", str(log_file))
+
+            marked_file_handlers = [
+                h
+                for h in root_logger.handlers
+                if getattr(h, _HANDLER_MARKER, False)
+                and isinstance(h, logging.FileHandler)
+            ]
+            assert len(marked_file_handlers) == 1
+        finally:
+            for handler in root_logger.handlers[:]:
+                handler.close()
+                root_logger.removeHandler(handler)
+            for handler in initial_handlers:
+                root_logger.addHandler(handler)
+            root_logger.setLevel(initial_level)
 
 
 class TestLogFunctionCall:

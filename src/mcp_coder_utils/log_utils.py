@@ -151,22 +151,11 @@ class ExtraFieldsFormatter(logging.Formatter):
 # Create standard logger
 stdlogger = logging.getLogger(__name__)
 
-
-def _is_testing_environment() -> bool:
-    """Check if we're currently running in a testing environment (pytest).
-
-    Returns:
-        True if pytest is detected in the current process.
-    """
-    import sys
-
-    # Check if pytest is running
-    return (
-        "pytest" in sys.modules
-        or "_pytest" in sys.modules
-        or hasattr(sys, "_called_from_test")
-        or "PYTEST_CURRENT_TEST" in os.environ
-    )
+# Attribute marker tagged onto every handler setup_logging creates. Handler
+# dedup keys on this marker (not isinstance) so setup_logging removes only the
+# handlers it added, leaving pytest's LogCaptureHandler and any consumer handler
+# untouched. This makes repeated calls idempotent without testing-env special-casing.
+_HANDLER_MARKER = "_mcp_coder_utils_handler"
 
 
 def _parse_level(level: str | int) -> int:
@@ -196,45 +185,30 @@ def _parse_level(level: str | int) -> int:
 def setup_logging(log_level: str | int, log_file: Optional[str] = None) -> None:
     """Configure logging - if log_file specified, logs only to file; otherwise to console.
 
-    Configures structlog globally. Call once at startup;
-    repeated calls override the structlog configuration.
+    Idempotent: removes only the handlers this function previously added (tagged
+    with ``_HANDLER_MARKER``), leaving pytest's capture handler and any consumer
+    handler untouched, then attaches fresh sinks. Configures structlog globally.
 
     Raises:
         ValueError: If log_level is not a valid logging level.
     """
-    # Set log level
-    numeric_level = _parse_level(log_level)
+    root_logger = logging.getLogger()
 
-    # Don't clear handlers if we're in a testing environment (pytest)
-    # This prevents conflicts with pytest's logging capture
-    if not _is_testing_environment():
-        # Clear existing handlers
-        root_logger = logging.getLogger()
-        for handler in root_logger.handlers[:]:
+    # Remove ONLY our previously added handlers (marker-based idempotency).
+    for handler in root_logger.handlers[:]:
+        if getattr(handler, _HANDLER_MARKER, False):
             root_logger.removeHandler(handler)
-    else:
-        root_logger = logging.getLogger()
+            handler.close()
 
+    numeric_level = _parse_level(log_level)
     root_logger.setLevel(numeric_level)
 
-    # Set up logging based on whether log_file is specified
+    sinks: list[str] = []
+
     if log_file:
-        # FILE LOGGING ONLY - no console output
-        # Create directory if needed
+        # File sink - structured JSON output.
         os.makedirs(os.path.dirname(os.path.abspath(log_file)), exist_ok=True)
 
-        # In testing environment, only add handler if it doesn't already exist
-        if _is_testing_environment():
-            # Check if file handler for this file already exists
-            file_handler_exists = any(
-                isinstance(h, logging.FileHandler)
-                and h.baseFilename == os.path.abspath(log_file)
-                for h in root_logger.handlers
-            )
-            if file_handler_exists:
-                return  # Handler already exists, don't add another
-
-        # Configure JSON file handler
         json_handler = logging.FileHandler(log_file)
         json_handler.setLevel(numeric_level)
 
@@ -243,42 +217,13 @@ def setup_logging(log_level: str | int, log_file: Optional[str] = None) -> None:
             fmt="%(asctime)s %(levelname)s %(name)s %(message)s %(module)s %(funcName)s %(lineno)d"
         )
         json_handler.setFormatter(json_formatter)
+        setattr(json_handler, _HANDLER_MARKER, True)
         root_logger.addHandler(json_handler)
+        sinks.append(f"file={log_file} level={logging.getLevelName(numeric_level)}")
 
-        # Configure structlog processors for file logging
-        # Only configure if not in testing environment to avoid conflicts
-        if not _is_testing_environment():
-            structlog.configure(
-                processors=[
-                    structlog.stdlib.filter_by_level,
-                    structlog.stdlib.add_logger_name,
-                    structlog.stdlib.add_log_level,
-                    structlog.processors.TimeStamper(fmt="%Y-%m-%d %H:%M:%S"),
-                    structlog.processors.StackInfoRenderer(),
-                    structlog.processors.format_exc_info,
-                    structlog.processors.UnicodeDecoder(),
-                    structlog.processors.JSONRenderer(),
-                ],
-                context_class=dict,
-                logger_factory=structlog.stdlib.LoggerFactory(),
-                wrapper_class=structlog.stdlib.BoundLogger,
-                cache_logger_on_first_use=True,
-            )
-
-        # Log initialization message to file only
-        stdlogger.info("Logging initialized: file=%s, level=%s", log_file, log_level)
-    else:
-        # CONSOLE LOGGING ONLY (fallback when no file specified)
-        # In testing environment, only add handler if no console handler exists
-        if _is_testing_environment():
-            console_handler_exists = any(
-                isinstance(h, logging.StreamHandler)
-                and not isinstance(h, logging.FileHandler)
-                for h in root_logger.handlers
-            )
-            if console_handler_exists:
-                return  # Console handler already exists, don't add another
-
+    if log_file is None:
+        # Console sink (XOR with file preserved this step; the feature parameter
+        # arrives in Step 4).
         console_handler = logging.StreamHandler()
         console_handler.setLevel(numeric_level)
         if numeric_level >= OUTPUT:
@@ -288,29 +233,29 @@ def setup_logging(log_level: str | int, log_file: Optional[str] = None) -> None:
                 "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
             )
         console_handler.setFormatter(console_formatter)
+        setattr(console_handler, _HANDLER_MARKER, True)
         root_logger.addHandler(console_handler)
+        sinks.append(f"console level={logging.getLevelName(numeric_level)}")
 
-        # Configure structlog processors for console logging
-        # Only configure if not in testing environment to avoid conflicts
-        if not _is_testing_environment():
-            structlog.configure(
-                processors=[
-                    structlog.stdlib.filter_by_level,  # This will respect the logging level
-                    structlog.stdlib.add_logger_name,
-                    structlog.stdlib.add_log_level,
-                    structlog.processors.TimeStamper(fmt="%Y-%m-%d %H:%M:%S"),
-                    structlog.processors.StackInfoRenderer(),
-                    structlog.processors.format_exc_info,
-                    structlog.processors.UnicodeDecoder(),
-                    structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
-                ],
-                context_class=dict,
-                logger_factory=structlog.stdlib.LoggerFactory(),
-                wrapper_class=structlog.stdlib.BoundLogger,
-                cache_logger_on_first_use=True,
-            )
+    # Configure structlog once, unconditionally, with the JSON-renderer chain.
+    structlog.configure(
+        processors=[
+            structlog.stdlib.filter_by_level,
+            structlog.stdlib.add_logger_name,
+            structlog.stdlib.add_log_level,
+            structlog.processors.TimeStamper(fmt="%Y-%m-%d %H:%M:%S"),
+            structlog.processors.StackInfoRenderer(),
+            structlog.processors.format_exc_info,
+            structlog.processors.UnicodeDecoder(),
+            structlog.processors.JSONRenderer(),
+        ],
+        context_class=dict,
+        logger_factory=structlog.stdlib.LoggerFactory(),
+        wrapper_class=structlog.stdlib.BoundLogger,
+        cache_logger_on_first_use=True,
+    )
 
-        stdlogger.debug("Logging initialized: console=%s", log_level)
+    stdlogger.debug("Logging initialized: %s", ", ".join(sinks))
 
 
 # Overload signatures for proper typing
