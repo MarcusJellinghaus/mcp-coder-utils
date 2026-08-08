@@ -7,8 +7,10 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+import mcp_coder_utils.log_utils as log_utils_module
 from mcp_coder_utils.log_utils import (
     OUTPUT,
+    STANDARD_LOG_FIELDS,
     CleanFormatter,
     ExtraFieldsFormatter,
     _parse_level,
@@ -887,3 +889,25 @@ class TestLogFunctionCallAsync:
             first_call = mock_logger.debug.call_args_list[0]
             log_params = first_call[0][2]
             assert "self" not in log_params
+
+
+
+class TestPublicExports:
+    """Tests for the module's public export contract (__all__)."""
+
+    def test_formatter_symbols_in_all(self) -> None:
+        """CleanFormatter, ExtraFieldsFormatter, STANDARD_LOG_FIELDS are exported."""
+        assert "CleanFormatter" in log_utils_module.__all__
+        assert "ExtraFieldsFormatter" in log_utils_module.__all__
+        assert "STANDARD_LOG_FIELDS" in log_utils_module.__all__
+
+    def test_formatter_symbols_importable(self) -> None:
+        """The exported formatter symbols resolve to non-None objects."""
+        assert CleanFormatter is not None
+        assert ExtraFieldsFormatter is not None
+        assert STANDARD_LOG_FIELDS is not None
+
+    def test_all_names_are_real_attributes(self) -> None:
+        """Every name listed in __all__ resolves to a real module attribute."""
+        for name in log_utils_module.__all__:
+            assert hasattr(log_utils_module, name), f"{name} missing from module"

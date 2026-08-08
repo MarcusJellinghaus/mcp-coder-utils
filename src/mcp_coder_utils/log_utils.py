@@ -14,7 +14,14 @@ from pythonjsonlogger.json import JsonFormatter
 
 from mcp_coder_utils.redaction import RedactableDict, redact_for_logging
 
-__all__ = ["OUTPUT", "log_function_call", "setup_logging"]
+__all__ = [
+    "OUTPUT",
+    "STANDARD_LOG_FIELDS",
+    "CleanFormatter",
+    "ExtraFieldsFormatter",
+    "log_function_call",
+    "setup_logging",
+]
 
 # Custom OUTPUT log level (between INFO=20 and WARNING=30)
 # OUTPUT is the default CLI threshold. At this threshold, CleanFormatter
