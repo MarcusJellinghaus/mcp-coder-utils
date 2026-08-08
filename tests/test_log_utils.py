@@ -1,5 +1,6 @@
 """Tests for log_utils module."""
 
+import io
 import json
 import logging
 from pathlib import Path
@@ -793,6 +794,293 @@ class TestSetupLoggingFormatterSelection:
         """DEBUG threshold should use ExtraFieldsFormatter."""
         formatter = self._get_console_formatter("DEBUG")
         assert isinstance(formatter, ExtraFieldsFormatter)
+
+
+class TestSetupLoggingDualMode:
+    """Tests for the console_level parameter and simultaneous file+console sinks."""
+
+    def _marked_handlers(self) -> list[logging.Handler]:
+        """Return the handlers setup_logging tagged on the root logger."""
+        root_logger = logging.getLogger()
+        return [h for h in root_logger.handlers if getattr(h, _HANDLER_MARKER, False)]
+
+    def test_root_floor_is_min_of_levels(self) -> None:
+        """log_level=INFO, console_level=DEBUG -> root floor lowered to DEBUG.
+
+        Proves DEBUG records are not pre-filtered at the logger. This is the
+        case the motivating INFO/OUTPUT scenario would miss.
+        """
+        root_logger = logging.getLogger()
+        initial_handlers = root_logger.handlers[:]
+        initial_level = root_logger.level
+
+        try:
+            for handler in root_logger.handlers[:]:
+                root_logger.removeHandler(handler)
+
+            setup_logging("INFO", console_level="DEBUG")
+
+            assert root_logger.level == logging.DEBUG
+        finally:
+            for handler in root_logger.handlers[:]:
+                handler.close()
+                root_logger.removeHandler(handler)
+            for handler in initial_handlers:
+                root_logger.addHandler(handler)
+            root_logger.setLevel(initial_level)
+
+    def test_dual_sinks_structure(self, tmp_path: Path) -> None:
+        """File + console_level=OUTPUT -> one file handler at INFO, one console at OUTPUT."""
+        log_file = tmp_path / "logs" / "test.log"
+        root_logger = logging.getLogger()
+        initial_handlers = root_logger.handlers[:]
+        initial_level = root_logger.level
+
+        try:
+            for handler in root_logger.handlers[:]:
+                root_logger.removeHandler(handler)
+
+            setup_logging("INFO", str(log_file), console_level=OUTPUT)
+
+            marked = self._marked_handlers()
+            file_handlers = [h for h in marked if isinstance(h, logging.FileHandler)]
+            console_handlers = [
+                h
+                for h in marked
+                if isinstance(h, logging.StreamHandler)
+                and not isinstance(h, logging.FileHandler)
+            ]
+
+            assert len(file_handlers) == 1
+            assert file_handlers[0].level == logging.INFO
+
+            assert len(console_handlers) == 1
+            assert console_handlers[0].level == OUTPUT
+            assert isinstance(console_handlers[0].formatter, CleanFormatter)
+
+            # min(20, 25) == 20
+            assert root_logger.level == logging.INFO
+        finally:
+            for handler in root_logger.handlers[:]:
+                handler.close()
+                root_logger.removeHandler(handler)
+            for handler in initial_handlers:
+                root_logger.addHandler(handler)
+            root_logger.setLevel(initial_level)
+
+    def test_dual_mode_behavioural_file_gets_record_console_filters(
+        self, tmp_path: Path
+    ) -> None:
+        """An INFO record lands in the file but is filtered from the OUTPUT console."""
+        log_file = tmp_path / "logs" / "test.log"
+        root_logger = logging.getLogger()
+        initial_handlers = root_logger.handlers[:]
+        initial_level = root_logger.level
+
+        try:
+            for handler in root_logger.handlers[:]:
+                root_logger.removeHandler(handler)
+
+            setup_logging("INFO", str(log_file), console_level=OUTPUT)
+
+            # Redirect the marked console handler's stream to a StringIO so we can
+            # capture what the console handler actually emits.
+            console_handlers = [
+                h
+                for h in self._marked_handlers()
+                if isinstance(h, logging.StreamHandler)
+                and not isinstance(h, logging.FileHandler)
+            ]
+            assert len(console_handlers) == 1
+            captured = io.StringIO()
+            console_handlers[0].setStream(captured)
+
+            logging.getLogger("dual_mode_x").info("trail line")
+
+            # Flush + close file handlers so the record is on disk.
+            for handler in self._marked_handlers():
+                handler.flush()
+            for handler in root_logger.handlers[:]:
+                handler.close()
+                root_logger.removeHandler(handler)
+
+            file_contents = log_file.read_text(encoding="utf-8")
+            assert "trail line" in file_contents
+
+            console_output = captured.getvalue()
+            assert "trail line" not in console_output
+        finally:
+            for handler in root_logger.handlers[:]:
+                handler.close()
+                root_logger.removeHandler(handler)
+            for handler in initial_handlers:
+                root_logger.addHandler(handler)
+            root_logger.setLevel(initial_level)
+
+    def test_console_formatter_from_console_level(self, tmp_path: Path) -> None:
+        """File + console_level=DEBUG -> console handler uses ExtraFieldsFormatter."""
+        log_file = tmp_path / "logs" / "test.log"
+        root_logger = logging.getLogger()
+        initial_handlers = root_logger.handlers[:]
+        initial_level = root_logger.level
+
+        try:
+            for handler in root_logger.handlers[:]:
+                root_logger.removeHandler(handler)
+
+            setup_logging("INFO", str(log_file), console_level="DEBUG")
+
+            console_handlers = [
+                h
+                for h in self._marked_handlers()
+                if isinstance(h, logging.StreamHandler)
+                and not isinstance(h, logging.FileHandler)
+            ]
+            assert len(console_handlers) == 1
+            assert isinstance(console_handlers[0].formatter, ExtraFieldsFormatter)
+        finally:
+            for handler in root_logger.handlers[:]:
+                handler.close()
+                root_logger.removeHandler(handler)
+            for handler in initial_handlers:
+                root_logger.addHandler(handler)
+            root_logger.setLevel(initial_level)
+
+    def test_console_level_without_log_file(self) -> None:
+        """console_level without log_file -> console only, root floor at DEBUG."""
+        root_logger = logging.getLogger()
+        initial_handlers = root_logger.handlers[:]
+        initial_level = root_logger.level
+
+        try:
+            for handler in root_logger.handlers[:]:
+                root_logger.removeHandler(handler)
+
+            setup_logging("DEBUG", console_level=OUTPUT)
+
+            marked = self._marked_handlers()
+            file_handlers = [h for h in marked if isinstance(h, logging.FileHandler)]
+            console_handlers = [
+                h
+                for h in marked
+                if isinstance(h, logging.StreamHandler)
+                and not isinstance(h, logging.FileHandler)
+            ]
+
+            assert len(file_handlers) == 0
+            assert len(console_handlers) == 1
+            assert console_handlers[0].level == OUTPUT
+            assert root_logger.level == logging.DEBUG
+        finally:
+            for handler in root_logger.handlers[:]:
+                handler.close()
+                root_logger.removeHandler(handler)
+            for handler in initial_handlers:
+                root_logger.addHandler(handler)
+            root_logger.setLevel(initial_level)
+
+    def test_backwards_compat_console_only(self) -> None:
+        """setup_logging(INFO) with no console_level -> console only, no file."""
+        root_logger = logging.getLogger()
+        initial_handlers = root_logger.handlers[:]
+        initial_level = root_logger.level
+
+        try:
+            for handler in root_logger.handlers[:]:
+                root_logger.removeHandler(handler)
+
+            setup_logging("INFO")
+
+            marked = self._marked_handlers()
+            file_handlers = [h for h in marked if isinstance(h, logging.FileHandler)]
+            console_handlers = [
+                h
+                for h in marked
+                if isinstance(h, logging.StreamHandler)
+                and not isinstance(h, logging.FileHandler)
+            ]
+
+            assert len(file_handlers) == 0
+            assert len(console_handlers) == 1
+            assert root_logger.level == logging.INFO
+        finally:
+            for handler in root_logger.handlers[:]:
+                handler.close()
+                root_logger.removeHandler(handler)
+            for handler in initial_handlers:
+                root_logger.addHandler(handler)
+            root_logger.setLevel(initial_level)
+
+    def test_backwards_compat_file_only(self, tmp_path: Path) -> None:
+        """setup_logging(INFO, log_file) with no console_level -> file only."""
+        log_file = tmp_path / "logs" / "test.log"
+        root_logger = logging.getLogger()
+        initial_handlers = root_logger.handlers[:]
+        initial_level = root_logger.level
+
+        try:
+            for handler in root_logger.handlers[:]:
+                root_logger.removeHandler(handler)
+
+            setup_logging("INFO", str(log_file))
+
+            marked = self._marked_handlers()
+            file_handlers = [h for h in marked if isinstance(h, logging.FileHandler)]
+            console_handlers = [
+                h
+                for h in marked
+                if isinstance(h, logging.StreamHandler)
+                and not isinstance(h, logging.FileHandler)
+            ]
+
+            assert len(file_handlers) == 1
+            assert len(console_handlers) == 0
+            assert root_logger.level == logging.INFO
+        finally:
+            for handler in root_logger.handlers[:]:
+                handler.close()
+                root_logger.removeHandler(handler)
+            for handler in initial_handlers:
+                root_logger.addHandler(handler)
+            root_logger.setLevel(initial_level)
+
+    def test_console_level_accepts_string_and_int(self, tmp_path: Path) -> None:
+        """console_level accepts both a string name and the OUTPUT int constant."""
+        log_file = tmp_path / "logs" / "test.log"
+        root_logger = logging.getLogger()
+        initial_handlers = root_logger.handlers[:]
+        initial_level = root_logger.level
+
+        try:
+            for handler in root_logger.handlers[:]:
+                root_logger.removeHandler(handler)
+
+            setup_logging("INFO", str(log_file), console_level="OUTPUT")
+            console_str = [
+                h
+                for h in self._marked_handlers()
+                if isinstance(h, logging.StreamHandler)
+                and not isinstance(h, logging.FileHandler)
+            ]
+            assert len(console_str) == 1
+            assert console_str[0].level == OUTPUT
+
+            setup_logging("INFO", str(log_file), console_level=OUTPUT)
+            console_int = [
+                h
+                for h in self._marked_handlers()
+                if isinstance(h, logging.StreamHandler)
+                and not isinstance(h, logging.FileHandler)
+            ]
+            assert len(console_int) == 1
+            assert console_int[0].level == OUTPUT
+        finally:
+            for handler in root_logger.handlers[:]:
+                handler.close()
+                root_logger.removeHandler(handler)
+            for handler in initial_handlers:
+                root_logger.addHandler(handler)
+            root_logger.setLevel(initial_level)
 
 
 class TestLogFunctionCallWithSensitiveFields:

@@ -182,15 +182,46 @@ def _parse_level(level: str | int) -> int:
     return numeric_level
 
 
-def setup_logging(log_level: str | int, log_file: Optional[str] = None) -> None:
-    """Configure logging - if log_file specified, logs only to file; otherwise to console.
+def setup_logging(
+    log_level: str | int,
+    log_file: Optional[str] = None,
+    console_level: str | int | None = None,
+) -> None:
+    """Configure logging to a file and/or the console, at independent levels.
+
+    A file sink and a console sink are configured independently and may coexist:
+
+    - ``log_file`` set  -> structured JSON file handler at ``log_level``.
+    - ``console_level`` behaviour:
+        * ``None`` (default): a console handler is added **iff** no ``log_file``
+          is given (fully backwards compatible file-XOR-console behaviour).
+        * a level: a console handler at that level is added **in addition to**
+          any file handler (dual mode). ``console_level`` may be given without a
+          ``log_file`` too, in which case ``log_level`` only sets the root floor
+          and the console handler filters at ``console_level``.
+
+    The root logger level is set to ``min(log_level, console_level)`` so records
+    are not pre-filtered at the logger below whichever handler threshold is
+    lowest; each handler then applies its own level. The file handler keeps its
+    explicit ``setLevel(log_level)`` (load-bearing: it keeps sub-threshold
+    records out of the file when the root floor sits below ``log_level``).
+
+    The console handler writes to stderr (bare ``StreamHandler()``, no
+    ``stream=``) so stdio MCP servers never write to stdout. Its formatter is
+    chosen from the **console** level: ``CleanFormatter`` at ``OUTPUT`` or above,
+    ``ExtraFieldsFormatter`` below.
 
     Idempotent: removes only the handlers this function previously added (tagged
     with ``_HANDLER_MARKER``), leaving pytest's capture handler and any consumer
     handler untouched, then attaches fresh sinks. Configures structlog globally.
 
+    Args:
+        log_level: Level for the file sink and the default console level.
+        log_file: Optional path to a JSON log file.
+        console_level: Optional level for a console sink added alongside the file.
+
     Raises:
-        ValueError: If log_level is not a valid logging level.
+        ValueError: If log_level or console_level is not a valid logging level.
     """
     root_logger = logging.getLogger()
 
@@ -201,7 +232,11 @@ def setup_logging(log_level: str | int, log_file: Optional[str] = None) -> None:
             handler.close()
 
     numeric_level = _parse_level(log_level)
-    root_logger.setLevel(numeric_level)
+    numeric_console_level = (
+        _parse_level(console_level) if console_level is not None else numeric_level
+    )
+    # Root floor sits at the lowest handler threshold so no sink is starved.
+    root_logger.setLevel(min(numeric_level, numeric_console_level))
 
     sinks: list[str] = []
 
@@ -221,12 +256,12 @@ def setup_logging(log_level: str | int, log_file: Optional[str] = None) -> None:
         root_logger.addHandler(json_handler)
         sinks.append(f"file={log_file} level={logging.getLevelName(numeric_level)}")
 
-    if log_file is None:
-        # Console sink (XOR with file preserved this step; the feature parameter
-        # arrives in Step 4).
+    if console_level is not None or log_file is None:
+        # Console sink - added alongside the file when console_level is given, or
+        # standalone when no file is configured. Writes to stderr by default.
         console_handler = logging.StreamHandler()
-        console_handler.setLevel(numeric_level)
-        if numeric_level >= OUTPUT:
+        console_handler.setLevel(numeric_console_level)
+        if numeric_console_level >= OUTPUT:
             console_formatter: logging.Formatter = CleanFormatter()
         else:
             console_formatter = ExtraFieldsFormatter(
@@ -235,7 +270,9 @@ def setup_logging(log_level: str | int, log_file: Optional[str] = None) -> None:
         console_handler.setFormatter(console_formatter)
         setattr(console_handler, _HANDLER_MARKER, True)
         root_logger.addHandler(console_handler)
-        sinks.append(f"console level={logging.getLevelName(numeric_level)}")
+        sinks.append(
+            f"console level={logging.getLevelName(numeric_console_level)}"
+        )
 
     # Configure structlog once, unconditionally, with the JSON-renderer chain.
     structlog.configure(
