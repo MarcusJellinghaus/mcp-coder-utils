@@ -47,7 +47,7 @@ class StreamResult:
 
     @property
     def result(self) -> CommandResult:
-        """Return the final CommandResult after the stream is consumed.
+        """The final CommandResult, available once the stream is consumed.
 
         Raises:
             RuntimeError: If the iterator has not been fully consumed yet.
