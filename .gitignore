@@ -58,3 +58,4 @@ uv.lock
 
 # Claude auto-memory files (session-local, not for version control)
 memory/
+.vscodeclaude_session.json
