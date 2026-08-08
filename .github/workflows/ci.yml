@@ -25,6 +25,7 @@ jobs:
           - {name: "ruff-docstrings", cmd: "ruff --version && ruff check src tests"}
           - {name: "pytest", cmd: "pytest --version && pytest --junitxml=unit-tests.xml"}
           - {name: "mypy", cmd: "mypy --version && mypy --strict src tests"}
+          - {name: "file-size", cmd: "uvx --from 'git+https://github.com/MarcusJellinghaus/mcp_coder.git' mcp-coder check file-size --max-lines 750 --allowlist-file .large-files-allowlist"}
     name: ${{ matrix.check.name }}
     steps:
       - uses: actions/checkout@v6
