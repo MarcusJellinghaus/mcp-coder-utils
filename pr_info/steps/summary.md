@@ -50,8 +50,9 @@ Worked examples (must match exactly):
    `if fingerprint:`, `token_fingerprint(k) or None`.
 6. **Absent is not malformed** — different states, kept distinct.
 7. **`len` and visible-character count may legitimately disagree** because
-   escaping expands characters. This is documented in the docstring so it is
-   not "fixed" later.
+   escaping expands characters. `len` counts **characters (code points), not
+   bytes** — plain `len()` semantics, kept as-is. Both points are documented in
+   the docstring so they are not "fixed" later.
 
 ## Architectural / design changes
 
@@ -81,8 +82,9 @@ Worked examples (must match exactly):
   an inline comment documents the rule with less indirection.
 - The escape incantation is factored into a single small module-level helper
   (`_escape_fragment`) instead of being duplicated inline for head and tail —
-  one place to read, one place to get right. (A nested `def` / module helper is
-  used rather than an assigned `lambda` to satisfy pylint E731.)
+  one place to read, one place to get right. (A module-level `def` is used
+  rather than an assigned `lambda` — plain readability, and it gives the helper
+  a docstring.)
 - Escaping is applied **per slice** (after `token[:4]` / `token[-4:]`), never to
   the whole token then sliced — slicing an escaped string would misalign on any
   expanded character and break the `ghp_...3f9\n` case.

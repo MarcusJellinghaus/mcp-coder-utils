@@ -18,7 +18,14 @@ Add to `src/mcp_coder_utils/redaction.py`:
 
 ```python
 def _escape_fragment(fragment: str) -> str:
-    """Escape a revealed token fragment so control chars can't break a log line."""
+    """Escape a revealed token fragment so control chars can't break a log line.
+
+    Args:
+        fragment: A slice of the raw token that will be shown in the log.
+
+    Returns:
+        The fragment with control and non-ASCII characters escaped.
+    """
     ...
 
 def token_fingerprint(token: str | None) -> str:
@@ -29,15 +36,28 @@ def token_fingerprint(token: str | None) -> str:
       * malformed (len < 16)      -> "<malformed>, len=N"
       * fingerprinted (len >= 16) -> "<esc(first4)>...<esc(last4)>, len=N"
 
-    len=N is always the RAW input length, measured before escaping. Revealed
-    parts are escaped per-slice; because escaping expands control characters,
-    len and the visible character count may legitimately disagree — that is by
-    design (len describes the secret, escaping describes the rendering). The
-    input is never stripped: the caller still holds the unstripped token and
-    that is what actually failed to authenticate.
+    len=N is always the RAW input length, measured before escaping, and counts
+    characters (code points), not bytes. Revealed parts are escaped per-slice;
+    because escaping expands control characters, len and the visible character
+    count may legitimately disagree — that is by design (len describes the
+    secret, escaping describes the rendering). The input is never stripped: the
+    caller still holds the unstripped token and that is what actually failed to
+    authenticate.
+
+    Args:
+        token: The raw secret token, or None when no token is configured.
+
+    Returns:
+        "" when absent, "<malformed>, len=N" when shorter than 16 characters,
+        otherwise "<esc(first4)>...<esc(last4)>, len=N".
     """
     ...
 ```
+
+Both docstrings carry Google-style `Args:` / `Returns:` sections, matching the
+convention of the existing functions in `redaction.py`. This is required, not
+cosmetic: ruff's `DOC201` (docstring-missing-returns) is enabled via
+`select = ["D", "DOC"]` with `preview = true` and would otherwise fail.
 
 ## HOW (integration)
 
@@ -79,16 +99,33 @@ Add a `TestTokenFingerprint` class to `tests/test_redaction.py`. Use **exact
 equality** assertions (not "no char appears" phrasing — `<malformed>` contains
 an `a`, so a substring test would be self-defeating).
 
-- `token_fingerprint(None) == ""`
-- `token_fingerprint("") == ""`
-- `token_fingerprint("abc") == "<malformed>, len=3"`
-- `token_fingerprint("ghp_" + "A" * 32 + "a3f9") == "ghp_...a3f9, len=40"`
-- `token_fingerprint("sk-abcd1234wxyz5678") == "sk-a...5678, len=19"`
-- **Boundaries:** a 15-char string → `"<malformed>, len=15"`; a 16-char string
-  → fingerprinted form with `len=16` (assert exact expected string).
-- **Escaping / one line:** for the 40-char token + trailing `"\n"`, assert the
-  result `== "ghp_...3f9\\n, len=41"` **and** `"\n" not in result` (literal
-  newline absent — it is rendered as the two chars `\n`).
+Every test method needs a `-> None` return annotation — `mypy --strict` covers
+`tests/` as well as `src/`.
+
+**One parametrized table for the pure input → expected cases**, matching the
+`@pytest.mark.parametrize` style already used by `TestRedactEnvVars` in the same
+file:
+
+| `token` | expected |
+|---|---|
+| `None` | `""` |
+| `""` | `""` |
+| `"abc"` | `"<malformed>, len=3"` |
+| `"A" * 15` (boundary, below threshold) | `"<malformed>, len=15"` |
+| `"A" * 16` (boundary, at threshold) | `"AAAA...AAAA, len=16"` |
+| `"ghp_" + "A" * 32 + "a3f9"` | `"ghp_...a3f9, len=40"` |
+| `"sk-abcd1234wxyz5678"` | `"sk-a...5678, len=19"` |
+| `"ghp_" + "A" * 32 + "a3f9" + "\n"` | `"ghp_...3f9\\n, len=41"` |
+
+(The last expected value is the Python literal — a backslash followed by `n`,
+not a newline.)
+
+**Two standalone tests for the non-equality assertions** (they check absence,
+not an exact value, so they do not belong in the table):
+
+- **Stays on one line:** for the 40-char token + trailing `"\n"`, assert
+  `"\n" not in result` — the literal newline is absent, rendered as the two
+  characters `\n`.
 - **Middle never leaks:** for a long token whose middle is a distinctive marker
   (e.g. `"AAAA" + "SECRETMIDDLE" + "ZZZZ"`), assert `"SECRETMIDDLE" not in
   token_fingerprint(...)`.
@@ -98,19 +135,24 @@ an `a`, so a substring test would be self-defeating).
 Run via MCP tools (per CLAUDE.md):
 
 ```
-mcp__tools-py__run_pylint_check
-mcp__tools-py__run_pytest_check   extra_args=["-n", "auto"]
-mcp__tools-py__run_mypy_check
+mcp__mcp-tools-py__run_pylint_check
+mcp__mcp-tools-py__run_pytest_check   extra_args=["-n", "auto"]
+mcp__mcp-tools-py__run_mypy_check
+mcp__mcp-tools-py__run_ruff_check
 ```
 
-Fix any issue before proceeding. (Watch for pylint E731 — use the module-level
-`def _escape_fragment`, not an assigned lambda.)
+`run_ruff_check` is not optional here: CI gates on it via the
+`ruff-docstrings` job (`ruff check src tests`), and the `DOC` rules are the
+ones most likely to trip on a newly added docstring.
+
+Fix any issue before proceeding. (Use the module-level `def _escape_fragment`
+rather than an assigned lambda — plain readability.)
 
 ## COMMIT
 
 One commit containing the `redaction.py` change and the `test_redaction.py`
-change together. Before committing, run `./tools/format_all.sh` and stage the
-formatting result, per CLAUDE.md.
+change together. Before committing, run `mcp__mcp-tools-py__run_format_code`
+(black + isort) and stage the formatting result, per CLAUDE.md.
 
 Suggested message:
 
