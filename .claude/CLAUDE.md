@@ -1,13 +1,13 @@
 ## About this repo
 
-`mcp-coder-utils` is a **leaf library**: shared low-level Python helpers (subprocess, logging, fs) used by `mcp-coder`, `mcp-tools-py`, `mcp-workspace`, and `mcp-config`.
+`mcp-coder-utils` is a **leaf library**: shared low-level Python helpers (subprocess, logging, fs) used by `mcp-coder`, `mcp-tools-py`, `mcp-workspace`, and `mcp-tools-sql`.
 
 **Architectural rules:**
 
 - Pure Python, language-agnostic. No ecosystem knowledge (no `pyproject.toml` parsing, no venv, no `.csproj`, no SQL).
 - Zero internal dependencies. Stdlib + pinned third-party libs only.
 - Every public function must have ≥2 real consumers. Single-user helpers stay in the consumer.
-- Public API is stable. Renames and signature changes break all 4 downstream repos.
+- Public API is stable. Renames and signature changes break every downstream repo.
 
 When in doubt, keep it in the consumer until a second consumer needs it.
 
@@ -95,4 +95,8 @@ mcp-coder gh-tool set-status <label>  # change issue workflow status label
 ## Writing style
 
 Be concise. If one line works, don't use three.
+
+## Asking questions
+
+Never use the AskUserQuestion tool. Ask questions as plain text in the chat.
 
