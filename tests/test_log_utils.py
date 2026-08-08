@@ -10,11 +10,11 @@ import pytest
 
 import mcp_coder_utils.log_utils as log_utils_module
 from mcp_coder_utils.log_utils import (
+    _HANDLER_MARKER,
     OUTPUT,
     STANDARD_LOG_FIELDS,
     CleanFormatter,
     ExtraFieldsFormatter,
-    _HANDLER_MARKER,
     _parse_level,
     log_function_call,
     setup_logging,
@@ -194,9 +194,7 @@ class TestSetupLoggingIdempotency:
             setup_logging("INFO")
 
             marked = [
-                h
-                for h in root_logger.handlers
-                if getattr(h, _HANDLER_MARKER, False)
+                h for h in root_logger.handlers if getattr(h, _HANDLER_MARKER, False)
             ]
             assert len(marked) == 1
             assert isinstance(marked[0], logging.StreamHandler)
@@ -228,9 +226,7 @@ class TestSetupLoggingIdempotency:
 
             # Our marked handler added alongside it.
             marked = [
-                h
-                for h in root_logger.handlers
-                if getattr(h, _HANDLER_MARKER, False)
+                h for h in root_logger.handlers if getattr(h, _HANDLER_MARKER, False)
             ]
             assert len(marked) == 1
             assert marked[0] is not foreign_handler
@@ -1276,7 +1272,6 @@ class TestLogFunctionCallAsync:
             first_call = mock_logger.debug.call_args_list[0]
             log_params = first_call[0][2]
             assert "self" not in log_params
-
 
 
 class TestPublicExports:
