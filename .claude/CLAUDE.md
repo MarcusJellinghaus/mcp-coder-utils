@@ -96,3 +96,7 @@ mcp-coder gh-tool set-status <label>  # change issue workflow status label
 
 Be concise. If one line works, don't use three.
 
+## Asking questions
+
+Never use the AskUserQuestion tool. Ask questions as plain text in the chat.
+
