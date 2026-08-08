@@ -256,7 +256,7 @@ def setup_logging(
         root_logger.addHandler(json_handler)
         sinks.append(f"file={log_file} level={logging.getLevelName(numeric_level)}")
 
-    if console_level is not None or log_file is None:
+    if console_level is not None or not log_file:
         # Console sink - added alongside the file when console_level is given, or
         # standalone when no file is configured. Writes to stderr by default.
         console_handler = logging.StreamHandler()

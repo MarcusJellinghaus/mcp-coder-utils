@@ -30,12 +30,14 @@ def clean_root_logger() -> Iterator[Callable[[], logging.Logger]]:
     re-attaches its capture handlers to the root logger *after* fixture setup,
     so the handlers can only be stripped from inside the test body.
 
-    On teardown every handler left behind is closed and removed, then the
-    original handlers (e.g. pytest's capture handlers) and level are restored.
+    On teardown the handlers the test itself added are closed and removed, then
+    the original handlers (e.g. pytest's capture handlers) and level are
+    restored. Handlers captured by ``_clean`` are only detached, never closed:
+    pytest owns those instances and reuses them for the rest of the session.
     """
     root_logger = logging.getLogger()
-    initial_handlers = root_logger.handlers[:]
-    initial_level = root_logger.level
+    initial_handlers: list[logging.Handler] = []
+    initial_level: int | None = None
 
     def _clean() -> logging.Logger:
         nonlocal initial_handlers, initial_level
@@ -48,12 +50,14 @@ def clean_root_logger() -> Iterator[Callable[[], logging.Logger]]:
     try:
         yield _clean
     finally:
-        for handler in root_logger.handlers[:]:
-            handler.close()
-            root_logger.removeHandler(handler)
-        for handler in initial_handlers:
-            root_logger.addHandler(handler)
-        root_logger.setLevel(initial_level)
+        if initial_level is not None:
+            for handler in root_logger.handlers[:]:
+                root_logger.removeHandler(handler)
+                if not any(handler is original for original in initial_handlers):
+                    handler.close()
+            for handler in initial_handlers:
+                root_logger.addHandler(handler)
+            root_logger.setLevel(initial_level)
 
 
 class TestOutputLevel:
@@ -949,6 +953,28 @@ class TestSetupLoggingDualMode:
 
         assert len(file_handlers) == 1
         assert len(console_handlers) == 0
+        assert root_logger.level == logging.INFO
+
+    def test_empty_log_file_falls_back_to_console(
+        self, clean_root_logger: Callable[[], logging.Logger]
+    ) -> None:
+        """setup_logging(INFO, "") -> console only, never a sinkless config."""
+        root_logger = clean_root_logger()
+
+        setup_logging("INFO", "")
+
+        marked = self._marked_handlers()
+        file_handlers = [h for h in marked if isinstance(h, logging.FileHandler)]
+        console_handlers = [
+            h
+            for h in marked
+            if isinstance(h, logging.StreamHandler)
+            and not isinstance(h, logging.FileHandler)
+        ]
+
+        assert len(file_handlers) == 0
+        assert len(console_handlers) == 1
+        assert console_handlers[0].level == logging.INFO
         assert root_logger.level == logging.INFO
 
     def test_console_level_accepts_string_and_int(

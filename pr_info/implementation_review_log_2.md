@@ -41,3 +41,42 @@ Starting state: all 4 implementation tasks complete, CI passing, branch behind `
 to this branch; confirmed flaky by re-run, not touched.)
 
 **Status**: committed
+
+## Round 2 — 2026-08-08
+
+**Findings**:
+- *Suggestion* — `src/mcp_coder_utils/log_utils.py:243,259`: two different truthiness tests on the same
+  argument (`if log_file:` vs `log_file is None`) mean a falsy-but-not-`None` `log_file` (`""`) skips
+  **both** sinks, so `setup_logging("INFO", "")` configures no handlers at all. Pre-change the
+  `if/else` fork sent `""` down the console path. Silent no-logging, not an error.
+- *Suggestion* — `tests/test_log_utils.py:51-53`: the `clean_root_logger` teardown (added in round 1)
+  closes **every** handler on the root logger, including pytest's long-lived `caplog_handler` /
+  `report_handler`, which `LoggingPlugin` re-attaches during the teardown phase — then re-adds those
+  now-closed instances. A hazard the old inline boilerplate did not have.
+- *Suggestion* — downstream heads-up: removing `_is_testing_environment` means `setup_logging` is no
+  longer a near-no-op under pytest, so downstream suites calling it un-mocked now get a real stderr
+  handler and lowered root level for the rest of the session.
+- *Suggestion* — `tests/test_log_utils.py:37-38`: `initial_handlers` / `initial_level` captured at
+  fixture-setup time are unconditionally overwritten by `_clean()`; dead state.
+- *Suggestion* — `tests/test_log_utils.py:875,958`: uneven handling of the `clean_root_logger()` return.
+
+**Decisions**:
+- **Accept** (`log_file=""`) — regression against pre-change behaviour in a leaf library with a stable
+  public API contract; one-token fix, silent failure mode removed.
+- **Accept** (fixture closes foreign handlers) — defect in code this review cycle introduced last round.
+- **Skip** (pytest no-op heads-up) — the intended design per the issue; no change belongs in this repo.
+  Surfaced to the user for the companion `mcp_coder` PR / release notes instead.
+- **Accept** (dead fixture state) — dead code written last round; trivial cleanup.
+- **Skip** (uneven return handling) — cosmetic, correct either way.
+
+**Changes**:
+- `src/mcp_coder_utils/log_utils.py` — console-sink condition is now `not log_file`, complementary to
+  the file sink's `if log_file:`; no argument value can skip both branches.
+- `tests/test_log_utils.py` — `clean_root_logger` teardown detaches all handlers but closes only those
+  not identity-present in `initial_handlers`; dead setup-time capture removed, teardown guarded on
+  `initial_level is not None`. Added `test_empty_log_file_falls_back_to_console`, verified to fail
+  (`assert 0 == 1`) without the fix.
+
+**Checks**: pylint PASS, mypy (strict) PASS, pytest 217/217 PASS.
+
+**Status**: committed
