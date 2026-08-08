@@ -30,14 +30,15 @@ def clean_root_logger() -> Iterator[Callable[[], logging.Logger]]:
     re-attaches its capture handlers to the root logger *after* fixture setup,
     so the handlers can only be stripped from inside the test body.
 
-    On teardown the handlers the test itself added are closed and removed, then
-    the original handlers (e.g. pytest's capture handlers) and level are
-    restored. Handlers captured by ``_clean`` are only detached, never closed:
+    Teardown always runs, whether or not the test called the fixture: the
+    handlers the test itself added are closed and removed, then the original
+    handlers (e.g. pytest's capture handlers) and level are restored. Handlers
+    captured at fixture setup or by ``_clean`` are only detached, never closed:
     pytest owns those instances and reuses them for the rest of the session.
     """
     root_logger = logging.getLogger()
-    initial_handlers: list[logging.Handler] = []
-    initial_level: int | None = None
+    initial_handlers: list[logging.Handler] = root_logger.handlers[:]
+    initial_level: int = root_logger.level
 
     def _clean() -> logging.Logger:
         nonlocal initial_handlers, initial_level
@@ -50,14 +51,13 @@ def clean_root_logger() -> Iterator[Callable[[], logging.Logger]]:
     try:
         yield _clean
     finally:
-        if initial_level is not None:
-            for handler in root_logger.handlers[:]:
-                root_logger.removeHandler(handler)
-                if not any(handler is original for original in initial_handlers):
-                    handler.close()
-            for handler in initial_handlers:
-                root_logger.addHandler(handler)
-            root_logger.setLevel(initial_level)
+        for handler in root_logger.handlers[:]:
+            root_logger.removeHandler(handler)
+            if not any(handler is original for original in initial_handlers):
+                handler.close()
+        for handler in initial_handlers:
+            root_logger.addHandler(handler)
+        root_logger.setLevel(initial_level)
 
 
 class TestOutputLevel:

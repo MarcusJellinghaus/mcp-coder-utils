@@ -222,8 +222,10 @@ def setup_logging(
     """
     root_logger = logging.getLogger()
 
-    # Validate levels BEFORE touching handlers so an invalid level leaves any
-    # existing logging configuration intact instead of tearing it down.
+    # Parse levels BEFORE any handler is removed, so an invalid level raises
+    # without tearing down a working configuration. Note this covers level
+    # parsing only: the log_file path is opened further below, after the marked
+    # handlers have already been removed.
     numeric_level = _parse_level(log_level)
     numeric_console_level = (
         _parse_level(console_level) if console_level is not None else numeric_level

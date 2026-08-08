@@ -80,3 +80,40 @@ to this branch; confirmed flaky by re-run, not touched.)
 **Checks**: pylint PASS, mypy (strict) PASS, pytest 217/217 PASS.
 
 **Status**: committed
+
+## Round 3 — 2026-08-08
+
+**Findings**:
+- *S1* — `tests/test_log_utils.py:39-40,53`: round 2's removal of the fixture's setup-time capture (plus
+  the `initial_level is not None` guard) did not remove dead code — it removed the **fallback path** for
+  a test that requests `clean_root_logger` but never calls it. Such a test now gets no teardown at all:
+  leaked unclosed handlers, mutated root level, and on Windows a blocked `tmp_path` cleanup. All 20
+  current call sites do invoke it, so no live failure — but the net is gone and the failure is silent.
+- *S2* — `src/mcp_coder_utils/log_utils.py:225-247`: the "validate before teardown" comment overclaims.
+  Only `_parse_level` was hoisted; `os.makedirs` and `logging.FileHandler(log_file)` still run after the
+  marked handlers are removed and closed, so an unwritable `log_file` still tears down working logging.
+- *S3* — `log_utils.py:220,259`: the `log_file=""` → console fallback is pinned by a test but not
+  described in the docstring.
+- *S4* — `log_utils.py:293`: the init message dropped from `INFO` to `DEBUG`; consumers running at
+  `INFO` with a log file lose the "Logging initialized" breadcrumb.
+
+**Decisions**:
+- **Accept** (S1) — self-inflicted by round 2's instruction; 3-line restoration, no behaviour change.
+- **Partial accept** (S2) — the `FileHandler`/`makedirs` ordering is **pre-existing** (pre-branch code
+  also cleared handlers before opening the file), so out of scope per the knowledge base. But the
+  *comment* asserting the stronger guarantee was introduced by this cycle, so it is corrected to
+  describe only what is actually guaranteed. Noted as a candidate follow-up issue.
+- **Skip** (S3) — docstring expansions were already added and reverted twice on this branch
+  (`e905a95` / `bde46f1` / `e138da5`); not reopening that.
+- **Skip** (S4) — intentional per `pr_info/steps/summary.md`. Surfaced to the user for release notes.
+
+**Changes**:
+- `tests/test_log_utils.py` — restored the setup-time capture, narrowed `initial_level` back to `int`,
+  removed the guard so teardown always runs. Teardown body otherwise unchanged (still closes only
+  handlers not identity-present in `initial_handlers`). Docstring updated.
+- `src/mcp_coder_utils/log_utils.py` — ordering comment reworded to cover level parsing only, and to
+  state explicitly that the `log_file` path is opened after handler removal.
+
+**Checks**: pylint PASS, mypy (strict) PASS, pytest 217/217 PASS, black+isort clean.
+
+**Status**: committed
