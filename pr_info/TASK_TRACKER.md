@@ -21,6 +21,6 @@ This tracks **Feature Implementation** consisting of multiple **Tasks**.
 
 ## Tasks
 
-<!-- Tasks populated from pr_info/steps/ by prepare_task_tracker -->
+- [ ] [Step 1 — Add `token_fingerprint` to `redaction.py`](./steps/step_1.md)
 
 ## Pull Request
