@@ -219,10 +219,6 @@ def setup_logging(
         log_level: Level for the file sink and the default console level.
         log_file: Optional path to a JSON log file.
         console_level: Optional level for a console sink added alongside the file.
-
-    Raises:
-        ValueError: If a string level name (``log_level`` or ``console_level``)
-            is not a known logging level.
     """
     root_logger = logging.getLogger()
 
