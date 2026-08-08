@@ -117,3 +117,60 @@ to this branch; confirmed flaky by re-run, not touched.)
 **Checks**: pylint PASS, mypy (strict) PASS, pytest 217/217 PASS, black+isort clean.
 
 **Status**: committed
+
+## Round 4 — 2026-08-08
+
+**Findings**:
+- **NO FINDINGS.** Round 3's fix (`2b4270a`) was stress-tested for the pattern that caught rounds 1-3
+  (each fix introducing the next defect). Three specific hazards were checked and ruled out:
+  double-restore is impossible (`Logger.addHandler` de-dupes and teardown drains root before re-adding);
+  no handler is wrongly closed (pytest's `LoggingPlugin` reuses the same handler instances across
+  phases, so all are identity-matched and merely detached); no test was silently weakened (all 20 call
+  sites invoke the fixture, so the restored capture only reinstates the unused safety net). Verified
+  empirically with a scratchpad probe replicating the fixture, not by inspection alone.
+- *Cosmetic* — `tests/test_log_utils.py:145-150`: a stale comment ("we may have additional handlers
+  from pytest") and a `>= 1` assertion left over from the pre-fixture era.
+
+**Decisions**:
+- **Skip** (stale comment / `>= 1` assertion) — cosmetic; the strict `== 1` assertion already exists in
+  `test_backwards_compat_file_only:954`, so no coverage is lost. Not worth another review round.
+
+**Changes**: none.
+
+**Status**: no changes needed — review loop terminates.
+
+---
+
+## Final Status
+
+**Rounds run**: 4 (3 with changes, round 4 clean).
+
+**Commits produced**:
+| SHA | Subject |
+|---|---|
+| `c815022` | `fix(log_utils): validate log levels before removing handlers` |
+| `62ed641` | `fix(log_utils): attach console sink for falsy log_file` |
+| `2b4270a` | `fix(tests): always run clean_root_logger teardown` |
+
+**Defects found and fixed** (all introduced by this branch, none pre-existing):
+1. `setup_logging` removed **and closed** its handlers before validating levels, so an invalid level
+   destroyed a working logging configuration and then raised.
+2. A falsy-but-not-`None` `log_file` (`""`) skipped both sinks, configuring no handlers at all.
+3. The `clean_root_logger` test fixture closed pytest's long-lived capture handlers, then lost its
+   unconditional-teardown safety net when that was fixed.
+
+**Final checks**: pylint PASS, mypy (strict) PASS, pytest 217/217 PASS, black+isort clean.
+`tests/test_subprocess_runner.py` / `tests/test_subprocess_streaming.py` have a known 5s-timeout flake
+unrelated to this branch; confirmed flaky by re-run, not touched.
+
+**Deliberately out of scope** (recorded for follow-up, not fixed here):
+- `os.makedirs` / `logging.FileHandler(log_file)` still run after handler teardown, so an unwritable
+  `log_file` tears down working logging and then raises. **Pre-existing** — the pre-branch code did the
+  same. Candidate for a separate issue.
+- Downstream release-note items for the companion `mcp_coder` PR: removing `_is_testing_environment`
+  means `setup_logging` is no longer a near-no-op under pytest (downstream suites calling it un-mocked
+  now get a real stderr handler and a lowered root level for the session); and the "Logging initialized"
+  message moved from `INFO` to `DEBUG`.
+
+**Outstanding**: the branch is BEHIND `origin/main` and still needs a rebase (`/rebase`), which issue
+#36's handoff comment notes would not apply cleanly.
