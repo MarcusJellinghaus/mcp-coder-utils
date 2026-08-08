@@ -63,6 +63,19 @@ Add `class TestSetupLoggingDualMode` in `tests/test_log_utils.py`:
 - **Dual sinks:** `setup_logging("INFO", str(log_file), console_level=OUTPUT)`
   → one marked `FileHandler` at `INFO`, one marked console `StreamHandler` at
   `OUTPUT` with `CleanFormatter`; `root.level == logging.INFO` (min(20,25)=20).
+- **Dual-mode behavioural (motivating risk):** with
+  `setup_logging("INFO", str(log_file), console_level=OUTPUT)`, emit an `INFO`
+  record (e.g. `logging.getLogger("x").info("trail line")`, or drive it through
+  `log_function_call`) while capturing the console handler's stream (point the
+  marked console `StreamHandler` at an `io.StringIO`, or wrap `sys.stderr`).
+  Assert the record **lands in the log file** (read `log_file` back — the
+  `INFO` line is present) **and is absent from the captured console output**
+  (filtered by the console handler's `OUTPUT` level). This exercises the actual
+  runtime handler/formatter interaction — the file's `JsonFormatter` and the
+  console's `CleanFormatter` both formatting a real emitted record — that the
+  issue flags as the first configuration where a console handler and in-use
+  structlog coexist; a purely structural handler/level/formatter check would
+  not catch a formatting or filtering failure here.
 - **Console formatter from console level:** file + `console_level="DEBUG"`
   → console handler uses `ExtraFieldsFormatter`.
 - **`console_level` without `log_file`:** `setup_logging("DEBUG", console_level=OUTPUT)`
