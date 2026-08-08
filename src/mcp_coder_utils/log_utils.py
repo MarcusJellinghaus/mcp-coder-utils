@@ -162,7 +162,31 @@ def _is_testing_environment() -> bool:
     )
 
 
-def setup_logging(log_level: str, log_file: Optional[str] = None) -> None:
+def _parse_level(level: str | int) -> int:
+    """Resolve a log level given as a name or number to its numeric value.
+
+    Args:
+        level: A logging level as an int (returned unchanged) or a case-
+            insensitive level name (e.g. "INFO", "OUTPUT").
+
+    Returns:
+        The numeric log level.
+
+    Raises:
+        ValueError: If a string level name is not a known logging level.
+    """
+    if isinstance(level, int):
+        return level
+    name = level.upper()
+    numeric_level = getattr(logging, name, None)
+    if not isinstance(numeric_level, int):
+        numeric_level = logging.getLevelName(name)  # resolves "OUTPUT"
+    if not isinstance(numeric_level, int):
+        raise ValueError(f"Invalid log level: {level}")
+    return numeric_level
+
+
+def setup_logging(log_level: str | int, log_file: Optional[str] = None) -> None:
     """Configure logging - if log_file specified, logs only to file; otherwise to console.
 
     Configures structlog globally. Call once at startup;
@@ -172,11 +196,7 @@ def setup_logging(log_level: str, log_file: Optional[str] = None) -> None:
         ValueError: If log_level is not a valid logging level.
     """
     # Set log level
-    numeric_level = getattr(logging, log_level.upper(), None)
-    if not isinstance(numeric_level, int):
-        numeric_level = logging.getLevelName(log_level.upper())
-        if not isinstance(numeric_level, int):
-            raise ValueError(f"Invalid log level: {log_level}")
+    numeric_level = _parse_level(log_level)
 
     # Don't clear handlers if we're in a testing environment (pytest)
     # This prevents conflicts with pytest's logging capture

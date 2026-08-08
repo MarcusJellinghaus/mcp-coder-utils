@@ -11,6 +11,7 @@ from mcp_coder_utils.log_utils import (
     OUTPUT,
     CleanFormatter,
     ExtraFieldsFormatter,
+    _parse_level,
     log_function_call,
     setup_logging,
 )
@@ -51,6 +52,31 @@ class TestOutputLevel:
             for handler in initial_handlers:
                 root_logger.addHandler(handler)
             root_logger.setLevel(initial_level)
+
+
+class TestParseLevel:
+    """Tests for the _parse_level helper."""
+
+    def test_parse_string_level(self) -> None:
+        """Standard string level names resolve to their numeric value."""
+        assert _parse_level("INFO") == logging.INFO
+
+    def test_parse_custom_string_level_case_insensitive(self) -> None:
+        """Custom level names resolve case-insensitively via getLevelName."""
+        assert _parse_level("output") == OUTPUT
+
+    def test_parse_int_passthrough(self) -> None:
+        """Integer levels are returned unchanged."""
+        assert _parse_level(logging.DEBUG) == logging.DEBUG
+
+    def test_parse_output_constant_passthrough(self) -> None:
+        """The exported OUTPUT int constant passes through unchanged."""
+        assert _parse_level(OUTPUT) == OUTPUT
+
+    def test_parse_invalid_string_raises(self) -> None:
+        """An unknown string level raises ValueError."""
+        with pytest.raises(ValueError):
+            _parse_level("NOPE")
 
 
 class TestSetupLogging:
