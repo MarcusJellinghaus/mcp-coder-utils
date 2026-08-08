@@ -222,16 +222,19 @@ def setup_logging(
     """
     root_logger = logging.getLogger()
 
+    # Validate levels BEFORE touching handlers so an invalid level leaves any
+    # existing logging configuration intact instead of tearing it down.
+    numeric_level = _parse_level(log_level)
+    numeric_console_level = (
+        _parse_level(console_level) if console_level is not None else numeric_level
+    )
+
     # Remove ONLY our previously added handlers (marker-based idempotency).
     for handler in root_logger.handlers[:]:
         if getattr(handler, _HANDLER_MARKER, False):
             root_logger.removeHandler(handler)
             handler.close()
 
-    numeric_level = _parse_level(log_level)
-    numeric_console_level = (
-        _parse_level(console_level) if console_level is not None else numeric_level
-    )
     # Root floor sits at the lowest handler threshold so no sink is starved.
     root_logger.setLevel(min(numeric_level, numeric_console_level))
 
