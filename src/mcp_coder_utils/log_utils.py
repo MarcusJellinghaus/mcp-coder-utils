@@ -14,7 +14,14 @@ from pythonjsonlogger.json import JsonFormatter
 
 from mcp_coder_utils.redaction import RedactableDict, redact_for_logging
 
-__all__ = ["OUTPUT", "log_function_call", "setup_logging"]
+__all__ = [
+    "OUTPUT",
+    "STANDARD_LOG_FIELDS",
+    "CleanFormatter",
+    "ExtraFieldsFormatter",
+    "log_function_call",
+    "setup_logging",
+]
 
 # Custom OUTPUT log level (between INFO=20 and WARNING=30)
 # OUTPUT is the default CLI threshold. At this threshold, CleanFormatter
@@ -144,70 +151,101 @@ class ExtraFieldsFormatter(logging.Formatter):
 # Create standard logger
 stdlogger = logging.getLogger(__name__)
 
+# Attribute marker tagged onto every handler setup_logging creates. Handler
+# dedup keys on this marker (not isinstance) so setup_logging removes only the
+# handlers it added, leaving pytest's LogCaptureHandler and any consumer handler
+# untouched. This makes repeated calls idempotent without testing-env special-casing.
+_HANDLER_MARKER = "_mcp_coder_utils_handler"
 
-def _is_testing_environment() -> bool:
-    """Check if we're currently running in a testing environment (pytest).
+
+def _parse_level(level: str | int) -> int:
+    """Resolve a log level given as a name or number to its numeric value.
+
+    Args:
+        level: A logging level as an int (returned unchanged) or a case-
+            insensitive level name (e.g. "INFO", "OUTPUT").
 
     Returns:
-        True if pytest is detected in the current process.
-    """
-    import sys
-
-    # Check if pytest is running
-    return (
-        "pytest" in sys.modules
-        or "_pytest" in sys.modules
-        or hasattr(sys, "_called_from_test")
-        or "PYTEST_CURRENT_TEST" in os.environ
-    )
-
-
-def setup_logging(log_level: str, log_file: Optional[str] = None) -> None:
-    """Configure logging - if log_file specified, logs only to file; otherwise to console.
-
-    Configures structlog globally. Call once at startup;
-    repeated calls override the structlog configuration.
+        The numeric log level.
 
     Raises:
-        ValueError: If log_level is not a valid logging level.
+        ValueError: If a string level name is not a known logging level.
     """
-    # Set log level
-    numeric_level = getattr(logging, log_level.upper(), None)
+    if isinstance(level, int):
+        return level
+    name = level.upper()
+    numeric_level = getattr(logging, name, None)
     if not isinstance(numeric_level, int):
-        numeric_level = logging.getLevelName(log_level.upper())
-        if not isinstance(numeric_level, int):
-            raise ValueError(f"Invalid log level: {log_level}")
+        numeric_level = logging.getLevelName(name)  # resolves "OUTPUT"
+    if not isinstance(numeric_level, int):
+        raise ValueError(f"Invalid log level: {level}")
+    return numeric_level
 
-    # Don't clear handlers if we're in a testing environment (pytest)
-    # This prevents conflicts with pytest's logging capture
-    if not _is_testing_environment():
-        # Clear existing handlers
-        root_logger = logging.getLogger()
-        for handler in root_logger.handlers[:]:
+
+def setup_logging(
+    log_level: str | int,
+    log_file: Optional[str] = None,
+    console_level: str | int | None = None,
+) -> None:
+    """Configure logging to a file and/or the console, at independent levels.
+
+    A file sink and a console sink are configured independently and may coexist:
+
+    - ``log_file`` set  -> structured JSON file handler at ``log_level``.
+    - ``console_level`` behaviour:
+        * ``None`` (default): a console handler is added **iff** no ``log_file``
+          is given (fully backwards compatible file-XOR-console behaviour).
+        * a level: a console handler at that level is added **in addition to**
+          any file handler (dual mode). ``console_level`` may be given without a
+          ``log_file`` too, in which case ``log_level`` only sets the root floor
+          and the console handler filters at ``console_level``.
+
+    The root logger level is set to ``min(log_level, console_level)`` so records
+    are not pre-filtered at the logger below whichever handler threshold is
+    lowest; each handler then applies its own level. The file handler keeps its
+    explicit ``setLevel(log_level)`` (load-bearing: it keeps sub-threshold
+    records out of the file when the root floor sits below ``log_level``).
+
+    The console handler writes to stderr (bare ``StreamHandler()``, no
+    ``stream=``) so stdio MCP servers never write to stdout. Its formatter is
+    chosen from the **console** level: ``CleanFormatter`` at ``OUTPUT`` or above,
+    ``ExtraFieldsFormatter`` below.
+
+    Idempotent: removes only the handlers this function previously added (tagged
+    with ``_HANDLER_MARKER``), leaving pytest's capture handler and any consumer
+    handler untouched, then attaches fresh sinks. Configures structlog globally.
+
+    Args:
+        log_level: Level for the file sink and the default console level.
+        log_file: Optional path to a JSON log file.
+        console_level: Optional level for a console sink added alongside the file.
+    """
+    root_logger = logging.getLogger()
+
+    # Parse levels BEFORE any handler is removed, so an invalid level raises
+    # without tearing down a working configuration. Note this covers level
+    # parsing only: the log_file path is opened further below, after the marked
+    # handlers have already been removed.
+    numeric_level = _parse_level(log_level)
+    numeric_console_level = (
+        _parse_level(console_level) if console_level is not None else numeric_level
+    )
+
+    # Remove ONLY our previously added handlers (marker-based idempotency).
+    for handler in root_logger.handlers[:]:
+        if getattr(handler, _HANDLER_MARKER, False):
             root_logger.removeHandler(handler)
-    else:
-        root_logger = logging.getLogger()
+            handler.close()
 
-    root_logger.setLevel(numeric_level)
+    # Root floor sits at the lowest handler threshold so no sink is starved.
+    root_logger.setLevel(min(numeric_level, numeric_console_level))
 
-    # Set up logging based on whether log_file is specified
+    sinks: list[str] = []
+
     if log_file:
-        # FILE LOGGING ONLY - no console output
-        # Create directory if needed
+        # File sink - structured JSON output.
         os.makedirs(os.path.dirname(os.path.abspath(log_file)), exist_ok=True)
 
-        # In testing environment, only add handler if it doesn't already exist
-        if _is_testing_environment():
-            # Check if file handler for this file already exists
-            file_handler_exists = any(
-                isinstance(h, logging.FileHandler)
-                and h.baseFilename == os.path.abspath(log_file)
-                for h in root_logger.handlers
-            )
-            if file_handler_exists:
-                return  # Handler already exists, don't add another
-
-        # Configure JSON file handler
         json_handler = logging.FileHandler(log_file)
         json_handler.setLevel(numeric_level)
 
@@ -216,74 +254,45 @@ def setup_logging(log_level: str, log_file: Optional[str] = None) -> None:
             fmt="%(asctime)s %(levelname)s %(name)s %(message)s %(module)s %(funcName)s %(lineno)d"
         )
         json_handler.setFormatter(json_formatter)
+        setattr(json_handler, _HANDLER_MARKER, True)
         root_logger.addHandler(json_handler)
+        sinks.append(f"file={log_file} level={logging.getLevelName(numeric_level)}")
 
-        # Configure structlog processors for file logging
-        # Only configure if not in testing environment to avoid conflicts
-        if not _is_testing_environment():
-            structlog.configure(
-                processors=[
-                    structlog.stdlib.filter_by_level,
-                    structlog.stdlib.add_logger_name,
-                    structlog.stdlib.add_log_level,
-                    structlog.processors.TimeStamper(fmt="%Y-%m-%d %H:%M:%S"),
-                    structlog.processors.StackInfoRenderer(),
-                    structlog.processors.format_exc_info,
-                    structlog.processors.UnicodeDecoder(),
-                    structlog.processors.JSONRenderer(),
-                ],
-                context_class=dict,
-                logger_factory=structlog.stdlib.LoggerFactory(),
-                wrapper_class=structlog.stdlib.BoundLogger,
-                cache_logger_on_first_use=True,
-            )
-
-        # Log initialization message to file only
-        stdlogger.info("Logging initialized: file=%s, level=%s", log_file, log_level)
-    else:
-        # CONSOLE LOGGING ONLY (fallback when no file specified)
-        # In testing environment, only add handler if no console handler exists
-        if _is_testing_environment():
-            console_handler_exists = any(
-                isinstance(h, logging.StreamHandler)
-                and not isinstance(h, logging.FileHandler)
-                for h in root_logger.handlers
-            )
-            if console_handler_exists:
-                return  # Console handler already exists, don't add another
-
+    if console_level is not None or not log_file:
+        # Console sink - added alongside the file when console_level is given, or
+        # standalone when no file is configured. Writes to stderr by default.
         console_handler = logging.StreamHandler()
-        console_handler.setLevel(numeric_level)
-        if numeric_level >= OUTPUT:
+        console_handler.setLevel(numeric_console_level)
+        if numeric_console_level >= OUTPUT:
             console_formatter: logging.Formatter = CleanFormatter()
         else:
             console_formatter = ExtraFieldsFormatter(
                 "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
             )
         console_handler.setFormatter(console_formatter)
+        setattr(console_handler, _HANDLER_MARKER, True)
         root_logger.addHandler(console_handler)
+        sinks.append(f"console level={logging.getLevelName(numeric_console_level)}")
 
-        # Configure structlog processors for console logging
-        # Only configure if not in testing environment to avoid conflicts
-        if not _is_testing_environment():
-            structlog.configure(
-                processors=[
-                    structlog.stdlib.filter_by_level,  # This will respect the logging level
-                    structlog.stdlib.add_logger_name,
-                    structlog.stdlib.add_log_level,
-                    structlog.processors.TimeStamper(fmt="%Y-%m-%d %H:%M:%S"),
-                    structlog.processors.StackInfoRenderer(),
-                    structlog.processors.format_exc_info,
-                    structlog.processors.UnicodeDecoder(),
-                    structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
-                ],
-                context_class=dict,
-                logger_factory=structlog.stdlib.LoggerFactory(),
-                wrapper_class=structlog.stdlib.BoundLogger,
-                cache_logger_on_first_use=True,
-            )
+    # Configure structlog once, unconditionally, with the JSON-renderer chain.
+    structlog.configure(
+        processors=[
+            structlog.stdlib.filter_by_level,
+            structlog.stdlib.add_logger_name,
+            structlog.stdlib.add_log_level,
+            structlog.processors.TimeStamper(fmt="%Y-%m-%d %H:%M:%S"),
+            structlog.processors.StackInfoRenderer(),
+            structlog.processors.format_exc_info,
+            structlog.processors.UnicodeDecoder(),
+            structlog.processors.JSONRenderer(),
+        ],
+        context_class=dict,
+        logger_factory=structlog.stdlib.LoggerFactory(),
+        wrapper_class=structlog.stdlib.BoundLogger,
+        cache_logger_on_first_use=True,
+    )
 
-        stdlogger.debug("Logging initialized: console=%s", log_level)
+    stdlogger.debug("Logging initialized: %s", ", ".join(sinks))
 
 
 # Overload signatures for proper typing
