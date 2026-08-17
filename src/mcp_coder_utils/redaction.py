@@ -6,6 +6,7 @@ from typing import Any
 __all__ = [
     "redact_for_logging",
     "redact_env_vars",
+    "token_fingerprint",
     "SENSITIVE_KEY_PATTERNS",
     "REDACTED_VALUE",
     "RedactableDict",
@@ -92,3 +93,48 @@ def redact_env_vars(
         else:
             result[key] = value
     return result
+
+
+def _escape_fragment(fragment: str) -> str:
+    """Escape a revealed token fragment so control chars can't break a log line.
+
+    Args:
+        fragment: A slice of the raw token that will be shown in the log.
+
+    Returns:
+        The fragment with control and non-ASCII characters escaped.
+    """
+    return fragment.encode("unicode_escape").decode("ascii")
+
+
+def token_fingerprint(token: str | None) -> str:
+    """Return a short, non-reversible identifier for *token*, safe for logs.
+
+    Three states, three outputs:
+      * absent  (None or "")      -> ""
+      * malformed (len < 16)      -> "<malformed>, len=N"
+      * fingerprinted (len >= 16) -> "<esc(first4)>...<esc(last4)>, len=N"
+
+    len=N is always the RAW input length, measured before escaping, and counts
+    characters (code points), not bytes. Revealed parts are escaped per-slice;
+    because escaping expands control characters, len and the visible character
+    count may legitimately disagree — that is by design (len describes the
+    secret, escaping describes the rendering). The input is never stripped: the
+    caller still holds the unstripped token and that is what actually failed to
+    authenticate.
+
+    Args:
+        token: The raw secret token, or None when no token is configured.
+
+    Returns:
+        "" when absent, "<malformed>, len=N" when shorter than 16 characters,
+        otherwise "<esc(first4)>...<esc(last4)>, len=N".
+    """
+    if not token:  # None or "" -> absent
+        return ""
+    length = len(token)  # raw length, BEFORE escaping
+    if length < 16:  # reveal at most half -> need >=16 to show 8
+        return f"<malformed>, len={length}"
+    head = _escape_fragment(token[:4])  # escape per-slice, not whole-then-slice
+    tail = _escape_fragment(token[-4:])
+    return f"{head}...{tail}, len={length}"

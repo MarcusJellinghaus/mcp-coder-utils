@@ -8,6 +8,7 @@ from mcp_coder_utils.redaction import (
     RedactableDict,
     redact_env_vars,
     redact_for_logging,
+    token_fingerprint,
 )
 
 
@@ -223,3 +224,35 @@ class TestRedactEnvVars:
         result = redact_env_vars(env)
         assert result is not env
         assert env["GITHUB_TOKEN"] == "ghp_abc"
+
+
+class TestTokenFingerprint:
+    """Tests for the token_fingerprint helper function."""
+
+    @pytest.mark.parametrize(
+        ("token", "expected"),
+        [
+            (None, ""),
+            ("", ""),
+            ("abc", "<malformed>, len=3"),
+            ("A" * 15, "<malformed>, len=15"),
+            ("A" * 16, "AAAA...AAAA, len=16"),
+            ("ghp_" + "A" * 32 + "a3f9", "ghp_...a3f9, len=40"),
+            ("sk-abcd1234wxyz5678", "sk-a...5678, len=19"),
+            ("ghp_" + "A" * 32 + "a3f9" + "\n", "ghp_...3f9\\n, len=41"),
+        ],
+    )
+    def test_token_fingerprint_cases(self, token: str | None, expected: str) -> None:
+        """Pure input -> expected output cases across all three states."""
+        assert token_fingerprint(token) == expected
+
+    def test_token_fingerprint_stays_on_one_line(self) -> None:
+        """A trailing newline is escaped, so the result never contains one."""
+        token = "ghp_" + "A" * 32 + "a3f9" + "\n"
+        result = token_fingerprint(token)
+        assert "\n" not in result
+
+    def test_token_fingerprint_middle_never_leaks(self) -> None:
+        """The distinctive middle of a long token never appears in the output."""
+        token = "AAAA" + "SECRETMIDDLE" + "ZZZZ"
+        assert "SECRETMIDDLE" not in token_fingerprint(token)
