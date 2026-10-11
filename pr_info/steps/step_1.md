@@ -102,8 +102,12 @@ VerifyItem.__post_init__:
 ## Tests (`tests/test_toolkit.py`)
 
 Class-based, `-> None` annotations (mypy `--strict`). Invalid literals need
-`# type: ignore[arg-type]`.
+`# type: ignore[arg-type]`; assignments to frozen fields need `# type: ignore[misc]`.
 
+- `TestFinding`
+  - assigning to a field (e.g. `finding.key = "x"`) → `dataclasses.FrozenInstanceError`
+- `TestActionRequest`
+  - assigning to a field (e.g. `request.action = "x"`) → `dataclasses.FrozenInstanceError`
 - `TestActionResult`
   - only `status` + `summary` required; defaults `findings == []`, `fix_text == ""`, `raw == ""`
   - unknown status → `ValueError`

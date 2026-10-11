@@ -23,7 +23,6 @@
 ```python
 from abc import ABC, abstractmethod
 from jsonschema import Draft202012Validator
-from jsonschema.exceptions import SchemaError
 
 # __all__ += ["JsonSchema", "validate_params", "ToolkitInfo", "Toolkit"]
 
@@ -63,8 +62,8 @@ class Toolkit(ABC):
 
 ## HOW
 
-- `jsonschema` is imported only in `toolkit.py`; its exceptions never escape —
-  `SchemaError` is re-raised as `ValueError(...) from exc`.
+- `jsonschema` is imported only in `toolkit.py`; its errors never escape — schema and
+  params errors are collected with `iter_errors` and raised as one `ValueError`.
 - Always `Draft202012Validator`, never the schema's `$schema`.
 - `Toolkit` docstring states the contract: `run` never raises for ordinary findings
   (a crash returns status `error`); `describe` receives the toolkit's own config section.
@@ -73,8 +72,9 @@ class Toolkit(ABC):
 
 ```
 _check_schema(schema):
-    try Draft202012Validator.check_schema(schema)
-    except SchemaError as exc: raise ValueError(f"Invalid params schema: {exc.message}") from exc
+    meta = Draft202012Validator(Draft202012Validator.META_SCHEMA)
+    errors = [f"{e.json_path}: {e.message}" for e in meta.iter_errors(schema)]
+    if errors: raise ValueError("Invalid params schema:\n" + "\n".join("  " + e for e in errors))
 validate_params(schema, params):
     _check_schema(schema)
     errors = [f"{e.json_path}: {e.message}" for e in Draft202012Validator(schema).iter_errors(dict(params))]
@@ -91,6 +91,8 @@ ToolkitInfo.__post_init__:
 
 - `validate_params` returns `None`; on failure the `ValueError` message lists every
   problem, one per line, prefixed with its location (`$`, `$.markers`, ...).
+- A malformed schema (in `validate_params` or `ToolkitInfo`) raises one `ValueError`
+  listing every schema problem the same way (location in the schema, e.g. `$.type`).
 - `Toolkit` defaults: `prompt_fragments() -> {}`, `verify(...) -> []`.
 
 ## Tests (`tests/test_toolkit.py`)
@@ -106,6 +108,9 @@ Shared valid schema, e.g.
 - `TestToolkitInfo`
   - valid schema → constructed; `llm_permissions == {}`, `fix_prompts == {}`
   - malformed schema → `ValueError`
+  - schema with two errors (e.g. `{"type": "object", "additionalProperties": False,
+    "properties": {"a": {"type": 5}, "b": {"minLength": -1}}}`) → `ValueError` whose
+    message contains both locations (`$.properties.a.type`, `$.properties.b.minLength`)
   - `additionalProperties` missing or `True` → `ValueError` (parametrize)
   - top-level `"type"` not `"object"` → `ValueError`
 - `TestToolkit`
