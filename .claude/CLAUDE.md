@@ -107,11 +107,14 @@ Never use `python -c` via Bash. If you reason instead of running, label the conc
 ```
 git commit / add / rebase / push / checkout -b / branch
 gh issue create / edit / comment (labels only via set-status)
+gh issue view (cross-repo only — otherwise use the MCP tool)
 mcp-coder gh-tool set-status <label>
 mcp-coder check branch-status
 ```
 
 **Status labels:** use `mcp-coder gh-tool set-status` to change issue workflow status — never use raw `gh issue edit` with label flags.
+
+**Slash-prefixed `gh` arguments:** prefix with `MSYS_NO_PATHCONV=1` — Git Bash rewrites a leading `/` into a Windows path.
 
 **Before every commit:** run `mcp__mcp-tools-py__run_format_code`, then stage and commit.
 
