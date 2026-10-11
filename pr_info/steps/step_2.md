@@ -114,6 +114,6 @@ Shared valid schema, e.g.
   - `additionalProperties` missing or `True` → `ValueError` (parametrize)
   - top-level `"type"` not `"object"` → `ValueError`
 - `TestToolkit`
-  - `Toolkit()` → `TypeError` (abstract)
+  - `Toolkit()` → `TypeError` (abstract); needs `# type: ignore[abstract]` for mypy `--strict`
   - minimal subclass implementing `describe`/`run`: `prompt_fragments() == {}`,
     `verify(tmp_path) == []`

@@ -103,6 +103,8 @@ VerifyItem.__post_init__:
 
 Class-based, `-> None` annotations (mypy `--strict`). Invalid literals need
 `# type: ignore[arg-type]`; assignments to frozen fields need `# type: ignore[misc]`.
+Parametrized valid-status tests type their parameter as `ActionStatus` /
+`VerifyStatus` (not `str`), otherwise mypy reports `arg-type`.
 
 - `TestFinding`
   - assigning to a field (e.g. `finding.key = "x"`) → `dataclasses.FrozenInstanceError`
