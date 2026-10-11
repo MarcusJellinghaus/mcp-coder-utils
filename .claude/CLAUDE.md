@@ -15,6 +15,13 @@ When in doubt, keep it in the consumer until a second consumer needs it.
 
 **Do NOT use native Claude Code file tools** (`Read`, `Write`, `Edit`, `Glob`, `Grep`, `Bash`) for any operation that has an MCP equivalent. Always use the `mcp__mcp-workspace__*` tools instead. This applies to all file reading, writing, editing, searching, listing, and git operations.
 
+**Justify Bash.** Before a Bash command or script, say in chat, on two lines:
+
+- *What it does* — one sentence.
+- *Why MCP doesn't* — which tool you'd have used, and what stops it.
+
+If you can't name the gap, use the MCP tool. Exempt: the approved git/gh commands under Git operations.
+
 ### Tool mapping
 
 | Task | MCP tool |
@@ -79,11 +86,13 @@ All checks must pass before proceeding.
 
 **Compact diff:** `mcp__mcp-workspace__git` with command `"diff"` includes compact diff by default — detects moved code, collapses unchanged blocks. Use `compact=False` for raw output.
 
-**Bash commands** for git operations that have no MCP equivalent:
+**Allowed commands via Bash tool.** These have no MCP equivalent — use Bash directly. Skills that instruct bash commands (e.g. `git commit`) must also use Bash.
 
 ```
-git commit / git add
-mcp-coder gh-tool set-status <label>  # change issue workflow status label
+git commit / add / rebase / push / checkout -b / branch
+gh issue create / edit / comment (labels only via set-status)
+mcp-coder gh-tool set-status <label>
+mcp-coder check branch-status
 ```
 
 **Status labels:** use `mcp-coder gh-tool set-status` to change issue workflow status — never use raw `gh issue edit` with label flags.
@@ -101,6 +110,8 @@ Be concise. Shorter is better — chat, commits, PRs, docs, comments alike.
 Say it once. Never restate what the reader can already see: the diff, the code, the issue, or my own earlier message. Cut it; don't rephrase it.
 
 If a sentence isn't load-bearing, delete it.
+
+Readable beats short. Cut what I don't need; don't compress what stays — complete sentences, no arrow chains or invented abbreviations. Lead with the outcome.
 
 ## Asking questions
 
