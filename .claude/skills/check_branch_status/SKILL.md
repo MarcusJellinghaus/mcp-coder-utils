@@ -1,10 +1,10 @@
 ---
 description: Check branch readiness including CI, rebase needs, tasks, and labels
 allowed-tools:
-  - "Bash(mcp-coder check branch-status *)"
+  - mcp__mcp-workspace__check_branch_status
 ---
 
-!`mcp-coder check branch-status --ci-timeout 180 --llm-truncate`
+Call `mcp__mcp-workspace__check_branch_status`.
 
 # Check Branch Status
 

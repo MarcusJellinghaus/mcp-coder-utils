@@ -19,7 +19,8 @@ Based on our prior `/issue_analyse` discussion, update the GitHub issue with ref
 **Instructions:**
 1. If no issue context is found from prior analysis, respond: "No issue context found. Please run `/issue_analyse <number>` first."
 
-2. First, fetch the current issue content using `mcp__mcp-workspace__github_issue_view`.
+2. First, fetch the current issue content:
+   Call `mcp__mcp-workspace__github_issue_view` with the issue number.
 
 3. Draft updated issue text with:
    - Clear, concise title
@@ -27,17 +28,17 @@ Based on our prior `/issue_analyse` discussion, update the GitHub issue with ref
 
 4. Write the issue body to a temp file (avoids bash escaping issues with markdown):
 ```python
-mcp__mcp-workspace__save_file(file_path="issue_body_temp.md", content=body_content)
+mcp__mcp-workspace__save_file(file_path=".scratch/issue_body_temp.md", content=body_content)
 ```
 
 5. Update the issue using `--body-file`:
 ```bash
-gh issue edit <issue_number> --title "NEW_TITLE" --body-file issue_body_temp.md
+gh issue edit <issue_number> --title "NEW_TITLE" --body-file .scratch/issue_body_temp.md
 ```
 
 6. Clean up the temp file:
 ```python
-mcp__mcp-workspace__delete_this_file(file_path="issue_body_temp.md")
+mcp__mcp-workspace__delete_this_file(file_path=".scratch/issue_body_temp.md")
 ```
 
 **Editing Base Branch:**
@@ -52,3 +53,4 @@ The base branch must be a single line. Multiple lines will cause an error during
 - Discussed implementation approach (concise)
 - `## Constraints & Rationale` — non-obvious gotchas and the "why" behind decisions. Skip if none identified.
 - `## Decisions` table — decided topics so `/issue_analyse` won't re-ask. Skip if none yet.
+- **`## Dependencies / references`** — preserve the links to the epic, design doc, dependencies, and curated siblings when rewriting; add the section if missing and the issue isn't standalone.
