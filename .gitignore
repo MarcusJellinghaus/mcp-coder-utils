@@ -46,9 +46,9 @@ nul
 # mcp-coder temp folder
 /.mcp-coder-tmp/
 
-# Transient workflow files
-pr_info/.commit_message.txt
-pr_info/.ci_problem_description.md
+# Do NOT ignore pr_info/.commit_message.txt or pr_info/.ci_problem_description.md:
+# the mcp-workspace file tools refuse gitignored paths, so the implement workflow
+# could not write them. mcp-coder deletes both before committing / opening a PR.
 
 # Import linter cache
 .import_linter_cache/
