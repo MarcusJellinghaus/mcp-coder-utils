@@ -151,6 +151,16 @@ class TestToolkitInfo:
         with pytest.raises(ValueError):
             ToolkitInfo(actions={}, params_schema={"type": 5})
 
+    def test_invalid_regex_pattern_raises(self) -> None:
+        """Test that a schema with an invalid regex pattern is rejected."""
+        schema: JsonSchema = {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {"x": {"type": "string", "pattern": "["}},
+        }
+        with pytest.raises(ValueError, match="Invalid params schema"):
+            ToolkitInfo(actions={}, params_schema=schema)
+
     def test_schema_errors_all_reported(self) -> None:
         """Test that every schema problem is listed with its location."""
         schema: JsonSchema = {

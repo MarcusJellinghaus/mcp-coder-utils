@@ -35,7 +35,10 @@ def _check_schema(schema: JsonSchema) -> None:
     Raises:
         ValueError: Listing every schema problem, one per line.
     """
-    meta = Draft202012Validator(Draft202012Validator.META_SCHEMA)
+    meta = Draft202012Validator(
+        Draft202012Validator.META_SCHEMA,
+        format_checker=Draft202012Validator.FORMAT_CHECKER,
+    )
     errors = [f"{e.json_path}: {e.message}" for e in meta.iter_errors(schema)]
     if errors:
         raise ValueError(
