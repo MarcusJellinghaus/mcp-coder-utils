@@ -16,3 +16,17 @@ logging.LogRecord.user_id  # noqa
 logging.LogRecord.request_id  # noqa
 logging.LogRecord.action  # noqa
 
+# Public toolkit dataclass fields, read by downstream consumers
+from mcp_coder_utils.toolkit import ActionRequest, ActionResult, Finding
+Finding.rule  # noqa
+Finding.severity  # noqa
+ActionRequest.depth  # noqa
+ActionRequest.project_dir  # noqa
+ActionResult.summary  # noqa
+
+# Public toolkit API, implemented and called by downstream consumers
+from mcp_coder_utils.toolkit import Toolkit, ToolkitInfo
+ToolkitInfo.actions  # noqa
+Toolkit.describe  # noqa
+Toolkit.describe.config  # noqa  # abstract-method parameter
+
