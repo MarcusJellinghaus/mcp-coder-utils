@@ -21,6 +21,25 @@ This tracks **Feature Implementation** consisting of multiple **Tasks**.
 
 ## Tasks
 
-<!-- Tasks populated from pr_info/steps/ by prepare_task_tracker -->
+### Step 1: Status aliases and result types — [step_1.md](./steps/step_1.md)
+
+- [ ] Implementation: `tests/test_toolkit.py` and `src/mcp_coder_utils/toolkit.py` (`ActionStatus`, `VerifyStatus`, `Finding`, `ActionRequest`, `ActionResult`, `VerifyItem`)
+- [ ] Quality checks: pylint, pytest, mypy — fix all issues
+- [ ] Commit message prepared
+
+### Step 2: JSON Schema validation, `ToolkitInfo` and `Toolkit` base class — [step_2.md](./steps/step_2.md)
+
+- [ ] Implementation: `jsonschema` dependencies in `pyproject.toml`, `JsonSchema`, `validate_params`, `ToolkitInfo`, `Toolkit`, plus tests
+- [ ] Quality checks: pylint, pytest, mypy — fix all issues
+- [ ] Commit message prepared
+
+### Step 3: README and architecture documentation — [step_3.md](./steps/step_3.md)
+
+- [ ] Implementation: "Toolkit interface" section in `README.md`, `toolkit.py` in `docs/architecture/architecture.md`
+- [ ] Quality checks: pylint, pytest, mypy — fix all issues
+- [ ] Commit message prepared
 
 ## Pull Request
+
+- [ ] PR review: review the full branch diff against `main`
+- [ ] PR summary prepared
