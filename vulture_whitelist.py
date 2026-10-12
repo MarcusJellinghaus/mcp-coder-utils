@@ -24,3 +24,9 @@ ActionRequest.depth  # noqa
 ActionRequest.project_dir  # noqa
 ActionResult.summary  # noqa
 
+# Public toolkit API, implemented and called by downstream consumers
+from mcp_coder_utils.toolkit import Toolkit, ToolkitInfo
+ToolkitInfo.actions  # noqa
+Toolkit.describe  # noqa
+Toolkit.describe.config  # noqa  # abstract-method parameter
+

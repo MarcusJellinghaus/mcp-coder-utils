@@ -29,9 +29,9 @@ This tracks **Feature Implementation** consisting of multiple **Tasks**.
 
 ### Step 2: JSON Schema validation, `ToolkitInfo` and `Toolkit` base class — [step_2.md](./steps/step_2.md)
 
-- [ ] Implementation: `jsonschema` dependencies in `pyproject.toml`, `JsonSchema`, `validate_params`, `ToolkitInfo`, `Toolkit`, plus tests
-- [ ] Quality checks: pylint, pytest, mypy — fix all issues
-- [ ] Commit message prepared
+- [x] Implementation: `jsonschema` dependencies in `pyproject.toml`, `JsonSchema`, `validate_params`, `ToolkitInfo`, `Toolkit`, plus tests
+- [x] Quality checks: pylint, pytest, mypy — fix all issues
+- [x] Commit message prepared
 
 ### Step 3: README and architecture documentation — [step_3.md](./steps/step_3.md)
 
