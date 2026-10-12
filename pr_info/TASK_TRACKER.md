@@ -35,9 +35,9 @@ This tracks **Feature Implementation** consisting of multiple **Tasks**.
 
 ### Step 3: README and architecture documentation — [step_3.md](./steps/step_3.md)
 
-- [ ] Implementation: "Toolkit interface" section in `README.md`, `toolkit.py` in `docs/architecture/architecture.md`
-- [ ] Quality checks: pylint, pytest, mypy — fix all issues
-- [ ] Commit message prepared
+- [x] Implementation: "Toolkit interface" section in `README.md`, `toolkit.py` in `docs/architecture/architecture.md`
+- [x] Quality checks: pylint, pytest, mypy — fix all issues
+- [x] Commit message prepared
 
 ## Pull Request
 

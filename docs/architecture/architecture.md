@@ -44,6 +44,7 @@ src/mcp_coder_utils/
     log_utils.py
     subprocess_runner.py
     subprocess_streaming.py
+    toolkit.py
     fs/
         __init__.py
         path_security.py
