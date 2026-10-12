@@ -23,9 +23,9 @@ This tracks **Feature Implementation** consisting of multiple **Tasks**.
 
 ### Step 1: Status aliases and result types — [step_1.md](./steps/step_1.md)
 
-- [ ] Implementation: `tests/test_toolkit.py` and `src/mcp_coder_utils/toolkit.py` (`ActionStatus`, `VerifyStatus`, `Finding`, `ActionRequest`, `ActionResult`, `VerifyItem`)
-- [ ] Quality checks: pylint, pytest, mypy — fix all issues
-- [ ] Commit message prepared
+- [x] Implementation: `tests/test_toolkit.py` and `src/mcp_coder_utils/toolkit.py` (`ActionStatus`, `VerifyStatus`, `Finding`, `ActionRequest`, `ActionResult`, `VerifyItem`)
+- [x] Quality checks: pylint, pytest, mypy — fix all issues
+- [x] Commit message prepared
 
 ### Step 2: JSON Schema validation, `ToolkitInfo` and `Toolkit` base class — [step_2.md](./steps/step_2.md)
 
