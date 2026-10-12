@@ -136,6 +136,23 @@ class TestValidateParams:
         with pytest.raises(ValueError, match="Invalid params schema"):
             validate_params({"type": 5}, {})
 
+    def test_unresolvable_ref_raises(self) -> None:
+        """Test that an unresolvable $ref surfaces as ValueError."""
+        with pytest.raises(ValueError, match="Invalid params schema"):
+            validate_params({"$ref": "#/$defs/missing"}, {})
+
+    def test_declared_draft_is_ignored(self) -> None:
+        """Test that a declared draft-07 schema is still validated as 2020-12."""
+        schema: JsonSchema = {
+            "$schema": "http://json-schema.org/draft-07/schema#",
+            "type": "object",
+            "properties": {
+                "args": {"type": "array", "prefixItems": [{"type": "string"}]}
+            },
+        }
+        with pytest.raises(ValueError, match=r"\$\.args\[0\]"):
+            validate_params(schema, {"args": [1]})
+
 
 class TestToolkitInfo:
     """Tests for the ToolkitInfo dataclass."""

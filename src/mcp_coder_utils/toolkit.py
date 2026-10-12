@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any, Literal, get_args
 
 from jsonschema import Draft202012Validator
+from referencing.exceptions import Unresolvable
 
 __all__ = [
     "ActionStatus",
@@ -54,14 +55,18 @@ def validate_params(schema: JsonSchema, params: Mapping[str, Any]) -> None:
         params: Params to validate.
 
     Raises:
-        ValueError: If the schema is malformed or the params do not match it;
-            the message lists every problem, one per line.
+        ValueError: If the schema is malformed, has an unresolvable `$ref`, or
+            the params do not match it; the message lists every problem, one
+            per line.
     """
     _check_schema(schema)
     validator = Draft202012Validator(schema)
-    errors = [
-        f"{e.json_path}: {e.message}" for e in validator.iter_errors(dict(params))
-    ]
+    try:
+        errors = [
+            f"{e.json_path}: {e.message}" for e in validator.iter_errors(dict(params))
+        ]
+    except Unresolvable as exc:
+        raise ValueError(f"Invalid params schema: {exc}") from exc
     if errors:
         raise ValueError("Invalid params:\n" + "\n".join("  " + e for e in errors))
 
