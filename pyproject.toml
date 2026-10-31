@@ -178,6 +178,9 @@ ignore = [
 # tests: assert is the pytest idiom (S101); S105/S106/S108 fire on fake
 # credentials and "/tmp/..." literals used as test data, never opened.
 "tests/**/*.py" = ["D", "DOC", "SIM117", "S101", "S105", "S106", "S108"]
+# tools/: low-priority helper scripts that may move to an MCP server or be deleted;
+# Returns sections are not required there.
+"tools/**" = ["DOC201"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
