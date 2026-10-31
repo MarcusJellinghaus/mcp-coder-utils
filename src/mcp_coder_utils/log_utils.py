@@ -5,9 +5,10 @@ import json
 import logging
 import os
 import time
+from collections.abc import Callable
 from functools import wraps
 from pathlib import Path
-from typing import Any, Callable, Optional, TypeVar, cast, overload
+from typing import Any, TypeVar, cast, overload
 
 import structlog
 from pythonjsonlogger.json import JsonFormatter
@@ -184,7 +185,7 @@ def _parse_level(level: str | int) -> int:
 
 def setup_logging(
     log_level: str | int,
-    log_file: Optional[str] = None,
+    log_file: str | None = None,
     console_level: str | int | None = None,
 ) -> None:
     """Configure logging to a file and/or the console, at independent levels.

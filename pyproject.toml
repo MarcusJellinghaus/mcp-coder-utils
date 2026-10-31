@@ -116,6 +116,7 @@ select = [
     "DOC201", "DOC202", "DOC402", "DOC403", "DOC501", "DOC502",
     "E",
     "F",
+    "UP",
     "I",
 ]
 ignore = [
