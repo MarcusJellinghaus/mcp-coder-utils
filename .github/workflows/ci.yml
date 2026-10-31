@@ -202,6 +202,7 @@ jobs:
           fi
 
   # Architecture checks - only run on pull requests
+  # These validate module boundaries and import structure
   architecture:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
@@ -209,9 +210,9 @@ jobs:
       fail-fast: false
       matrix:
         check:
-          - {name: "import-linter", cmd: "lint-imports --version && lint-imports"}
+          - {name: "import-linter", cmd: "uv pip show import-linter | grep Version && ./tools/lint_imports.sh"}
           - {name: "tach", cmd: "tach --version && ./tools/tach_check.sh"}
-          - {name: "vulture", cmd: "vulture --version && vulture src tests vulture_whitelist.py --min-confidence 60"}
+          - {name: "vulture", cmd: "vulture --version && ./tools/vulture_check.sh"}
           - {name: "deptry", cmd: "deptry --version && ./tools/deptry_check.sh"}
     name: ${{ matrix.check.name }}
     steps:
