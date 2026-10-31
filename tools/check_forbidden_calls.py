@@ -2,12 +2,13 @@
 
 Rules (no allowlist beyond the two wrappers that own process spawning):
 
-- ``subprocess``: ``import subprocess`` / ``from subprocess import``, or a
-  process-spawning call from ``os`` (``os.system``, ``os.popen``,
-  ``os.spawn*``, ``os.exec*``, ``os.posix_spawn*``, ``os.startfile``) or
-  ``asyncio.create_subprocess_*``, outside
+- ``subprocess``: a process-spawning call from ``os`` (``os.system``,
+  ``os.popen``, ``os.spawn*``, ``os.exec*``, ``os.posix_spawn*``,
+  ``os.startfile``) or ``asyncio.create_subprocess_*``, outside
   ``src/mcp_coder_utils/subprocess_runner.py`` and
   ``src/mcp_coder_utils/subprocess_streaming.py``. Use those wrappers.
+  ``import subprocess`` itself is enforced by import-linter
+  (``.importlinter`` contract ``subprocess_isolation``).
 - ``git``: an argv list starting with ``"git"`` (``["git", ...]``, also split
   across lines). This leaf library has no git knowledge; git belongs in
   ``mcp_workspace``.
@@ -42,10 +43,6 @@ RULES: tuple[Rule, ...] = (
     Rule(
         "subprocess",
         (
-            re.compile(
-                r"^[ \t]*(?:import[ \t]+subprocess\b|from[ \t]+subprocess[ \t]+import\b)",
-                re.MULTILINE,
-            ),
             re.compile(
                 r"\bos\.(?:system|popen|spawn\w*|exec[lv]\w*|posix_spawn\w*|startfile)\s*\("
             ),

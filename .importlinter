@@ -48,3 +48,30 @@ forbidden_modules =
     mcp_tools_py
     mcp_workspace
     mcp_config
+
+# -----------------------------------------------------------------------------
+# Contract: Subprocess Library Isolation
+# -----------------------------------------------------------------------------
+# The 'subprocess' module should only be used by subprocess_runner and
+# subprocess_streaming. All other modules must use them as an abstraction layer.
+# Enforced in tests as well.
+# Process spawning via os.system/os.popen/asyncio and git argv lists are caught
+# by `tools/check_forbidden_calls.py` (rules `subprocess` and `git`).
+#
+# Permanent exceptions:
+#   - tests.test_subprocess_runner: patches subprocess.Popen and asserts
+#     subprocess constants to exercise subprocess_runner itself
+# tools/ is outside root_packages and unchecked.
+# -----------------------------------------------------------------------------
+[importlinter:contract:subprocess_isolation]
+name = Subprocess Library Isolation
+type = forbidden
+source_modules =
+    mcp_coder_utils
+    tests
+forbidden_modules =
+    subprocess
+ignore_imports =
+    mcp_coder_utils.subprocess_runner -> subprocess
+    mcp_coder_utils.subprocess_streaming -> subprocess
+    tests.test_subprocess_runner -> subprocess

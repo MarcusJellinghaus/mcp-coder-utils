@@ -51,10 +51,8 @@ def test_git_argv_multi_line_reports_bracket_line() -> None:
         "import subprocess as sp\n",
     ],
 )
-def test_subprocess_import_elsewhere_is_hit(text: str) -> None:
-    hits = find_violations("src/mcp_coder_utils/other.py", text)
-    assert len(hits) == 1
-    assert "[subprocess]" in hits[0]
+def test_subprocess_import_is_left_to_import_linter(text: str) -> None:
+    assert find_violations("src/mcp_coder_utils/other.py", text) == []
 
 
 @pytest.mark.parametrize(
