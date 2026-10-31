@@ -26,22 +26,33 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+# Type stubs - required in PROJECT venv for mypy type resolution
+types = [
+    "types-jsonschema>=4.20",
+]
+
+# Type checking - mypy + type stubs (declared first-class, not transitive)
+typecheck = ["mypy>=1.13.0", "mcp-coder-utils[types]"]
+
+# Test utilities - for local development (execution env already has pytest/mypy)
 test = [
     "pytest",
     "pytest-asyncio",
     "pytest-xdist",
+    "pytest-cov",
 ]
 
+# Full development setup - combines all groups for local development
 dev = [
-    "mcp-coder-utils[test]",
-    "mypy>=1.0.0",
-    "types-jsonschema>=4.20",
-    "pylint>=3.0.0",
-    "ruff~=0.17.2",
-    "vulture>=2.14",
+    "mcp-coder-utils[types,typecheck,test]",
     "import-linter>=2.0",
+    "pydeps>=3.0.0",
     "tach>=0.6.0",
+    "vulture>=2.14",
+    "ruff~=0.17.2",
     "deptry>=0.25.1",
+    "diff-cover",
+    "pylint>=3.0.0",
     "mcp-coder",
     "mcp-tools-py",
     "mcp-workspace",
@@ -159,7 +170,7 @@ known_first_party = ["mcp_coder_utils"]
 # Extras holding dev-only packages: deptry exempts them from DEP002 and reports
 # DEP004 if src/ imports them. deptry does not expand mcp-coder-utils[...] self-
 # references, so each such extra is named explicitly.
-optional_dependencies_dev_groups = ["dev", "test"]
+optional_dependencies_dev_groups = ["dev", "types", "typecheck", "test"]
 
 [tool.mcp-coder.install-from-github]
 # Installed WITHOUT deps (siblings — avoid downgrading shared deps)
