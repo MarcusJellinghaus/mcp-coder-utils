@@ -202,14 +202,14 @@ post_install_checks = [
 ]
 
 [tool.mcp-coder.install-from-github]
-# Installed WITH deps (leaves — picks up new external deps)
+# Installed WITH deps (picks up new external deps)
 packages = [
-]
-# Installed WITHOUT deps (depend on siblings — avoid downgrading)
-packages-no-deps = [
     "mcp-coder @ git+https://github.com/MarcusJellinghaus/mcp_coder.git",
     "mcp-tools-py @ git+https://github.com/MarcusJellinghaus/mcp-tools-py.git",
     "mcp-workspace @ git+https://github.com/MarcusJellinghaus/mcp-workspace.git",
+]
+# Installed WITHOUT deps (depend on siblings — avoid downgrading)
+packages-no-deps = [
 ]
 
 [tool.mcp-coder.implement]
