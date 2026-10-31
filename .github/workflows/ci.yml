@@ -81,10 +81,12 @@ jobs:
         with:
           python-version: 3.11
 
+      # --no-sources: mcp-tools-py's [tool.uv.sources] pins mcp-coder-utils to
+      # git, which conflicts with the local checkout installed here.
       - name: Install dependencies
         run: |
           mapfile -t SPECS < <(python tools/read_github_deps.py --specs)
-          uv pip install --system "${SPECS[@]}" "${{ matrix.check.install || '.[dev]' }}"
+          uv pip install --system --no-sources "${SPECS[@]}" "${{ matrix.check.install || '.[dev]' }}"
 
       - name: Environment info
         run: |
@@ -122,10 +124,12 @@ jobs:
         with:
           python-version: 3.11
 
+      # --no-sources: mcp-tools-py's [tool.uv.sources] pins mcp-coder-utils to
+      # git, which conflicts with the local checkout installed here.
       - name: Install dependencies
         run: |
           mapfile -t SPECS < <(python tools/read_github_deps.py --specs)
-          uv pip install --system "${SPECS[@]}" "${{ matrix.check.install || '.[dev]' }}"
+          uv pip install --system --no-sources "${SPECS[@]}" "${{ matrix.check.install || '.[dev]' }}"
 
       - name: Environment info
         run: |
