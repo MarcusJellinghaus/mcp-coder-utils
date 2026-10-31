@@ -53,7 +53,10 @@ def temp_dir() -> Generator[Path, None, None]:
                 # This is expected on Windows sometimes
                 import warnings
 
-                warnings.warn(f"Could not clean up temp directory {tmp_path}: {e}")
+                warnings.warn(
+                    f"Could not clean up temp directory {tmp_path}: {e}",
+                    stacklevel=2,
+                )
             else:
                 raise
 

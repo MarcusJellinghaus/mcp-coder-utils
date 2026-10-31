@@ -348,10 +348,18 @@ def log_function_call(
             # Handle method calls (skip self/cls)
             if args and fn.__code__.co_varnames[0] in ("self", "cls"):
                 log_params.update(
-                    dict(zip(fn.__code__.co_varnames[1 : len(args)], args[1:]))
+                    dict(
+                        zip(
+                            fn.__code__.co_varnames[1 : len(args)],
+                            args[1:],
+                            strict=False,
+                        )
+                    )
                 )
             else:
-                log_params.update(dict(zip(fn.__code__.co_varnames[: len(args)], args)))
+                log_params.update(
+                    dict(zip(fn.__code__.co_varnames[: len(args)], args, strict=False))
+                )
 
             # Add keyword arguments
             log_params.update(kwargs)
