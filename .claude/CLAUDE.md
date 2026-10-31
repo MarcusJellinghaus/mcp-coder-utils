@@ -45,7 +45,7 @@ If you can't name the gap, use the MCP tool. Exempt: the approved git/gh command
 | Run mypy | `mcp__mcp-tools-py__run_mypy_check` |
 | Run lint-imports | `mcp__mcp-tools-py__run_lint_imports_check` |
 | Run vulture | `mcp__mcp-tools-py__run_vulture_check` |
-| Format code (black+isort) | `mcp__mcp-tools-py__run_format_code` |
+| Format code (project's configured formatter) | `mcp__mcp-tools-py__run_format_code` |
 | Check a Python semantic before claiming it | scratch probe — see [Scratch probes](#scratch-probes) |
 | Get library source | `mcp__mcp-tools-py__get_library_source` |
 | Refactoring | `mcp__mcp-tools-py__move_symbol`, `move_module`, `rename_symbol`, `list_symbols`, `find_references` |

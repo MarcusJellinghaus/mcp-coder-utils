@@ -51,8 +51,7 @@ def check_tool_missing_error(
     """
     if f"No module named {tool_name}" in stderr:
         return (
-            f"{tool_name} is not installed in the Python environment "
-            f"at {python_path}."
+            f"{tool_name} is not installed in the Python environment at {python_path}."
         )
     return None
 

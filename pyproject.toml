@@ -33,12 +33,10 @@ test = [
 
 dev = [
     "mcp-coder-utils[test]",
-    "black>=26.5.1",
-    "isort>=9.0.1",
     "mypy>=1.0.0",
     "types-jsonschema>=4.20",
     "pylint>=3.0.0",
-    "ruff>=0.9.0",
+    "ruff~=0.17.2",
     "vulture>=2.14",
     "import-linter>=2.0",
     "mcp-coder",
@@ -68,16 +66,8 @@ asyncio_mode = "auto"
 addopts = ["--strict-markers", "--tb=short", "-n", "auto"]
 
 [tool.mcp-tools-py]
-formatter = "black"   # isort + black
-
-[tool.black]
-line-length = 88
-target-version = ["py311"]
-
-[tool.isort]
-profile = "black"
-line_length = 88
-float_to_top = true
+# Formatter for run_format_code and mcp-coder workflows: ruff (import sorting + ruff format)
+formatter = "ruff"
 
 [tool.pylint.messages_control]
 disable = [
@@ -112,9 +102,11 @@ ignore_missing_imports = true
 target-version = "py311"
 line-length = 88
 
+[tool.ruff.format]
+
 [tool.ruff.lint]
 preview = true
-select = ["D", "DOC"]
+select = ["D", "DOC", "I"]
 ignore = [
     "D104",  # missing docstring in __init__.py
     "D107",  # missing docstring in __init__ method

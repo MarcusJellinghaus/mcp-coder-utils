@@ -695,12 +695,12 @@ class TestIntegrationScenarios:
 
         assert len(results) == 3
         for thread_id, result in results:
-            assert isinstance(
-                result, CommandResult
-            ), f"Thread {thread_id} failed with: {result if isinstance(result, Exception) else 'Unknown error'}"
-            assert (
-                result.return_code == 0
-            ), f"Thread {thread_id} returned code {result.return_code}, stdout: {result.stdout}, stderr: {result.stderr}"
+            assert isinstance(result, CommandResult), (
+                f"Thread {thread_id} failed with: {result if isinstance(result, Exception) else 'Unknown error'}"
+            )
+            assert result.return_code == 0, (
+                f"Thread {thread_id} returned code {result.return_code}, stdout: {result.stdout}, stderr: {result.stderr}"
+            )
             assert f"Thread {thread_id} started" in result.stdout
             assert f"Thread {thread_id} finished" in result.stdout
 
@@ -747,9 +747,9 @@ class TestIntegrationScenarios:
             if result.execution_error and "PermissionError" in result.execution_error:
                 pytest.skip(f"Windows file locking issue: {result.execution_error}")
 
-            assert (
-                result.return_code == 0
-            ), f"Script failed with code {result.return_code}, stdout: {result.stdout}, stderr: {result.stderr}, error: {result.execution_error}"
+            assert result.return_code == 0, (
+                f"Script failed with code {result.return_code}, stdout: {result.stdout}, stderr: {result.stderr}, error: {result.execution_error}"
+            )
             # MCP variable should be removed (isolation)
             assert "MCP_STDIO_TRANSPORT: NOT_SET" in result.stdout
             # Custom variable should be preserved
@@ -1014,9 +1014,9 @@ class TestLogOutput:
         # Find the debug call with "Starting subprocess execution"
         debug_calls = [str(c) for c in mock_logger.debug.call_args_list]
         matching = [c for c in debug_calls if "Starting subprocess execution" in c]
-        assert (
-            matching
-        ), f"No DEBUG log with 'Starting subprocess execution' found in {debug_calls}"
+        assert matching, (
+            f"No DEBUG log with 'Starting subprocess execution' found in {debug_calls}"
+        )
         # Should contain all command parts, not just first 3
         log_text = matching[0]
         assert "print" in log_text, f"Expected full command in log, got: {log_text}"

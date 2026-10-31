@@ -69,11 +69,7 @@ class TestStreamInactivityWatchdog:
 
     def test_stream_subprocess_basic(self) -> None:
         """Basic streaming without a watchdog should yield all lines."""
-        script = (
-            "import sys\n"
-            "for i in range(3):\n"
-            "    print(f'hello {i}', flush=True)\n"
-        )
+        script = "import sys\nfor i in range(3):\n    print(f'hello {i}', flush=True)\n"
         result = stream_subprocess([sys.executable, "-c", script])
 
         assert isinstance(result, StreamResult)

@@ -571,9 +571,9 @@ class TestLogFunctionCallLoggerName:
                 for name in func_logger_calls
                 if name == "mcp_coder_utils.log_utils"
             ]
-            assert (
-                len(log_utils_module_calls) == 0
-            ), f"Logger should not be from mcp_coder_utils.log_utils: {func_logger_calls}"
+            assert len(log_utils_module_calls) == 0, (
+                f"Logger should not be from mcp_coder_utils.log_utils: {func_logger_calls}"
+            )
 
     def test_log_function_call_structlog_uses_correct_module(self) -> None:
         """Verify structlog logger also uses decorated function's module."""
@@ -592,9 +592,9 @@ class TestLogFunctionCallLoggerName:
                 logged_func()
 
                 # Verify structlog.get_logger was called
-                assert (
-                    mock_structlog.get_logger.called
-                ), "structlog.get_logger should be called"
+                assert mock_structlog.get_logger.called, (
+                    "structlog.get_logger should be called"
+                )
 
                 # Verify it was called with the function's module (this test module)
                 call_args = mock_structlog.get_logger.call_args_list
