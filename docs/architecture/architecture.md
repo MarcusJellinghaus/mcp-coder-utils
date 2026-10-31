@@ -24,7 +24,9 @@ consumed by `mcp-coder`, `mcp-tools-py`, `mcp-workspace`, and `mcp-config`.
    (no `pyproject.toml` parsing, no venv awareness, no `.csproj`, no SQL).
 2. **Zero internal dependencies.** Stdlib + a small set of pinned third-party
    libs only. Never imports from `mcp_coder`, `mcp_tools_py`, `mcp_workspace`,
-   or `mcp_config`. Enforced by `.importlinter`.
+   or `mcp_config`. Enforced by `.importlinter`. Dependencies between modules
+   inside the package are declared in `tach.toml`; `tach check` enforces them
+   and forbids cycles.
 3. **≥2 real consumers required.** Every public function must have at least
    two real consumers (or be provably generic). Single-user "might be useful"
    helpers belong in the consumer.

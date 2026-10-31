@@ -1,0 +1,83 @@
+# =============================================================================
+# Tach Configuration - Module Dependency Declarations
+# =============================================================================
+# Declares the allowed internal dependencies between mcp_coder_utils modules.
+# Run with: tach check (or tools/tach_check.sh / tools/tach_check.bat)
+#
+# Division of labour with import-linter (.importlinter):
+# - import-linter owns the leaf-library contract (no imports from sibling
+#   mcp-coder repos) and the no-tests-in-src contract.
+# - tach adds per-module dependency declarations and cycle detection for
+#   src/ (tests/ is not covered — see source_roots below).
+#
+# No layers: the package is two independent pairs (log_utils -> redaction,
+# subprocess_streaming -> subprocess_runner) plus standalone modules. There
+# is no stack to enforce; depends_on already says everything.
+# =============================================================================
+
+exclude = ["**/__pycache__", "build/", "dist/", ".venv/", "*.egg-info/"]
+# src only — deliberately not ["src", "."] as in mcp_coder. With "." as a
+# second root, every file under src/ resolves twice and tach 0.35 reports
+# undeclared dependencies nondeterministically (a real violation was missed
+# in about half of repeated runs). Consequence: tests/ is outside tach's view
+# and has no [[modules]] entry. Nothing is lost — tests may import any
+# module anyway, and import-linter forbids src -> tests.
+source_roots = ["src"]
+# Note: exact = false (as in mcp_coder) — depends_on defines "allowed" rather
+# than "required" dependencies.
+exact = false
+forbid_circular_dependencies = true
+ignore_type_checking_imports = true
+
+# =============================================================================
+# ROOT MODULE
+# =============================================================================
+
+[[modules]]
+path = "mcp_coder_utils"
+# __init__.py only exposes __version__; it re-exports no submodules.
+depends_on = []
+
+# =============================================================================
+# SOURCE MODULES
+# =============================================================================
+
+[[modules]]
+path = "mcp_coder_utils.redaction"
+# Redaction of sensitive values in dicts before logging. Stdlib only.
+depends_on = []
+
+[[modules]]
+path = "mcp_coder_utils.log_utils"
+# Logging setup and structured log helpers; redacts payloads before emitting.
+depends_on = [
+    { path = "mcp_coder_utils.redaction" },
+]
+
+[[modules]]
+path = "mcp_coder_utils.subprocess_runner"
+# Blocking subprocess execution with timeouts and environment handling.
+depends_on = []
+
+[[modules]]
+path = "mcp_coder_utils.subprocess_streaming"
+# Line-by-line streaming with watchdog; reuses runner's types, env, kill.
+depends_on = [
+    { path = "mcp_coder_utils.subprocess_runner" },
+]
+
+[[modules]]
+path = "mcp_coder_utils.toolkit"
+# Toolkit contract (base class + result types). No internal dependencies.
+depends_on = []
+
+[[modules]]
+path = "mcp_coder_utils.user_app_data"
+# Per-user application data directory resolution. No internal dependencies.
+depends_on = []
+
+[[modules]]
+path = "mcp_coder_utils.fs"
+# Filesystem helpers (path security, file reading, line endings). One module:
+# fs/__init__.py re-exports its own submodules, which tach treats as internal.
+depends_on = []

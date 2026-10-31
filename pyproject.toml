@@ -39,6 +39,7 @@ dev = [
     "ruff~=0.17.2",
     "vulture>=2.14",
     "import-linter>=2.0",
+    "tach>=0.6.0",
     "deptry>=0.25.1",
     "mcp-coder",
     "mcp-tools-py",
@@ -64,7 +65,8 @@ where = ["src"]
 testpaths = ["tests"]
 pythonpath = ["src"]
 asyncio_mode = "auto"
-addopts = ["--strict-markers", "--tb=short", "-n", "auto"]
+# -p no:tach: Disable tach plugin (noisy output about unaffected tests)
+addopts = ["--strict-markers", "--tb=short", "-n", "auto", "-p", "no:tach"]
 
 [tool.mcp-tools-py]
 # Formatter for run_format_code and mcp-coder workflows: ruff (import sorting + ruff format)

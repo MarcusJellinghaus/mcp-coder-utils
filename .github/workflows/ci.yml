@@ -106,6 +106,7 @@ jobs:
       matrix:
         check:
           - {name: "import-linter", cmd: "lint-imports --version && lint-imports"}
+          - {name: "tach", cmd: "tach --version && ./tools/tach_check.sh"}
           - {name: "vulture", cmd: "vulture --version && vulture src tests vulture_whitelist.py --min-confidence 60"}
           - {name: "deptry", cmd: "deptry --version && ./tools/deptry_check.sh"}
     name: ${{ matrix.check.name }}
