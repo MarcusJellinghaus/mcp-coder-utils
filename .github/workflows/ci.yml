@@ -63,7 +63,7 @@ jobs:
         check:
           - {name: "ruff-format", cmd: "ruff version && ruff format --check src tests tools"}
           - {name: "pylint", cmd: "pylint --version && pylint ./src ./tests"}
-          - {name: "ruff-docstrings", cmd: "ruff --version && ruff check src tests"}
+          - {name: "ruff", cmd: "ruff version && ruff check src tests tools"}
           - {name: "pytest", cmd: "pytest --version && pytest --junitxml=unit-tests.xml"}
           - {name: "mypy", cmd: "mypy --version && mypy --strict src tests"}
           # mcp-coder declares mcp-workspace and mcp-tools-py as plain names, so

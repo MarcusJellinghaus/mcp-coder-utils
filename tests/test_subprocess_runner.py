@@ -14,18 +14,14 @@ from unittest.mock import patch
 import pytest
 
 from mcp_coder_utils.subprocess_runner import (
-    CalledProcessError,
     CommandOptions,
     CommandResult,
-    SubprocessError,
-    TimeoutExpired,
     _run_heartbeat,
     check_tool_missing_error,
     execute_command,
     execute_subprocess,
     format_command,
     get_python_isolation_env,
-    get_utf8_env,
     is_python_command,
     launch_process,
     prepare_env,
