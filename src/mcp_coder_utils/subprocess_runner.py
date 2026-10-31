@@ -257,7 +257,8 @@ def _kill_process(
     if os.name == "nt":
         try:
             subprocess.run(
-                ["taskkill", "/F", "/T", "/PID", str(process.pid)],
+                # taskkill is a Windows system tool, resolved via PATH by design.
+                ["taskkill", "/F", "/T", "/PID", str(process.pid)],  # noqa: S607
                 capture_output=True,
                 timeout=5,
                 check=False,

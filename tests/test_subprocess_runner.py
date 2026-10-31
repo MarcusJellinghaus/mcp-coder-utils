@@ -173,7 +173,8 @@ class TestCommandOptions:
 
     def test_command_options_custom(self) -> None:
         """Test CommandOptions with custom values."""
-        options = CommandOptions(
+        # shell=True is the field under test; nothing is executed.
+        options = CommandOptions(  # noqa: S604
             cwd="/tmp",
             timeout_seconds=60,
             env={"TEST": "value"},
@@ -993,7 +994,8 @@ class TestLaunchProcess:
         """Verify args forwarded."""
         with patch("mcp_coder_utils.subprocess_runner.subprocess.Popen") as mock_popen:
             mock_popen.return_value.pid = 1
-            launch_process(["echo", "hi"], cwd="/tmp", shell=True)
+            # Popen is mocked; verifies shell=True is forwarded.
+            launch_process(["echo", "hi"], cwd="/tmp", shell=True)  # noqa: S604
             call_kwargs = mock_popen.call_args[1]
             assert call_kwargs["cwd"] == "/tmp"
             assert call_kwargs["shell"] is True
