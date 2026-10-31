@@ -76,6 +76,8 @@ jobs:
 
       - name: Install uv
         uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: false
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v6
@@ -111,6 +113,8 @@ jobs:
 
       - name: Install uv
         uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: false
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v6
