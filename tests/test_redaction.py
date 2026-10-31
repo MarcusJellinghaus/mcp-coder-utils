@@ -143,7 +143,7 @@ class TestSensitiveKeyPatterns:
                 "access_key",
             }
         )
-        assert SENSITIVE_KEY_PATTERNS == expected
+        assert expected == SENSITIVE_KEY_PATTERNS
 
     def test_sensitive_key_patterns_is_frozenset(self) -> None:
         """Verify SENSITIVE_KEY_PATTERNS is immutable."""

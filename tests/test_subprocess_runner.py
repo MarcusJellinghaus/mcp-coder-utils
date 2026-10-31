@@ -471,10 +471,7 @@ class TestSTDIOIsolation:
 
     def test_non_python_subprocess(self) -> None:
         """Test regular subprocess execution for non-Python commands."""
-        if os.name == "nt":  # Windows
-            command = ["cmd", "/c", "echo hello"]
-        else:  # Unix/Linux
-            command = ["echo", "hello"]
+        command = ["cmd", "/c", "echo hello"] if os.name == "nt" else ["echo", "hello"]
 
         options = CommandOptions(timeout_seconds=5)
         result = execute_subprocess(command, options)
@@ -870,7 +867,8 @@ class TestPrepareEnv:
 
     def test_env_inherits_parent_path(self) -> None:
         """Verify PATH from parent env is preserved (the bug fix)."""
-        original_path = os.environ.get("PATH", os.environ.get("Path", ""))
+        # "Path" is deliberate: Windows spells it that way; test is case-agnostic.
+        original_path = os.environ.get("PATH", os.environ.get("Path", ""))  # noqa: SIM112
         env = prepare_env(["echo", "hi"], {"MY_VAR": "test"}, None)
         # PATH should be inherited from os.environ, not lost
         env_path = env.get("PATH", env.get("Path", ""))
