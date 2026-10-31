@@ -39,6 +39,7 @@ dev = [
     "ruff~=0.17.2",
     "vulture>=2.14",
     "import-linter>=2.0",
+    "deptry>=0.25.1",
     "mcp-coder",
     "mcp-tools-py",
     "mcp-workspace",
@@ -146,6 +147,15 @@ ignore = [
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
+
+# Dependency-declaration hygiene. Run as `deptry src`.
+# src only: running it over tests/ yields DEP004 noise and no signal.
+[tool.deptry]
+known_first_party = ["mcp_coder_utils"]
+# Extras holding dev-only packages: deptry exempts them from DEP002 and reports
+# DEP004 if src/ imports them. deptry does not expand mcp-coder-utils[...] self-
+# references, so each such extra is named explicitly.
+optional_dependencies_dev_groups = ["dev", "test"]
 
 [tool.mcp-coder.install-from-github]
 # Installed WITHOUT deps (siblings — avoid downgrading shared deps)
