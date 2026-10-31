@@ -73,16 +73,17 @@ where = ["src"]
 [tool.setuptools.package-dir]
 "" = "src"
 
-[tool.setuptools_scm]
-# Version is automatically determined from git tags
-# Tag format: v0.1.0 -> version 0.1.0
-
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
-asyncio_mode = "auto"
+
+# Default pytest options:
+# --strict-markers: Fail if unknown markers are used (prevents typos)
+# --tb=short: Show concise error tracebacks (not full stack traces)
+# -n auto: Run tests in parallel using all available CPUs
 # -p no:tach: Disable tach plugin (noisy output about unaffected tests)
 addopts = ["--strict-markers", "--tb=short", "-n", "auto", "-p", "no:tach"]
+asyncio_mode = "auto"
 
 [tool.mcp-tools-py]
 # Formatter for run_format_code and mcp-coder workflows: ruff (import sorting + ruff format)
@@ -109,6 +110,8 @@ enable = ["R0401"]
 python_version = "3.11"
 strict = true
 warn_unreachable = true
+# Disable import-untyped errors for libraries without stubs when types-* packages are not installed
+# The types-jsonschema package is available in [project.optional-dependencies].types for dev environments
 disable_error_code = ["import-untyped"]
 
 [[tool.mypy.overrides]]
@@ -117,8 +120,18 @@ ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = ["tests.*"]
+# Disable unreachable warnings for test files due to mypy false positives with assertions
+# Disable union-attr for test files where mocked attributes are intentionally set
 disable_error_code = ["unreachable", "union-attr"]
 ignore_missing_imports = true
+
+[tool.setuptools_scm]
+# Version is automatically determined from git tags
+# Tag format: v0.1.0 -> version 0.1.0
+# Between releases: 0.1.0.devN+gHASH (includes commit count and hash)
+
+# Note: import-linter configuration is in .importlinter file (INI format)
+# to reduce token usage when LLMs read pyproject.toml
 
 [tool.ruff]
 target-version = "py311"
@@ -127,7 +140,10 @@ line-length = 88
 [tool.ruff.format]
 
 [tool.ruff.lint]
+# Rule selection — see the per-group comments below
 # preview needed for DOC rules (pydoclint)
+#
+# TRY (tryceratops), including TRY400, rejected: duplicates stack traces — see mcp_coder#1172.
 preview = true
 explicit-preview-rules = true   # preview rules fire only when selected by exact code
 select = [
@@ -175,10 +191,26 @@ known_first_party = ["mcp_coder_utils"]
 # references, so each such extra is named explicitly.
 optional_dependencies_dev_groups = ["dev", "types", "typecheck", "test"]
 
+[tool.mcp-coder.install]
+# Extras `mcp-coder install` passes to `uv` when provisioning this repo.
+extras = "dev"
+# Run by `mcp-coder install` after provisioning; any failure fails the install.
+post_install_checks = [
+    ["mcp-coder", "--version"],
+    ["mcp-workspace", "--version"],
+    ["mcp-tools-py", "--version"],
+]
+
 [tool.mcp-coder.install-from-github]
-# Installed WITHOUT deps (siblings — avoid downgrading shared deps)
+# Installed WITH deps (leaves — picks up new external deps)
+packages = [
+]
+# Installed WITHOUT deps (depend on siblings — avoid downgrading)
 packages-no-deps = [
     "mcp-coder @ git+https://github.com/MarcusJellinghaus/mcp_coder.git",
     "mcp-tools-py @ git+https://github.com/MarcusJellinghaus/mcp-tools-py.git",
     "mcp-workspace @ git+https://github.com/MarcusJellinghaus/mcp-workspace.git",
 ]
+
+[tool.mcp-coder.implement]
+check_type_hints = true
