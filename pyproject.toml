@@ -49,7 +49,6 @@ test = [
 dev = [
     "mcp-coder-utils[types,typecheck,test]",
     "import-linter>=2.0",
-    "pydeps>=3.0.0",
     "tach>=0.6.0",
     "vulture>=2.14",
     "ruff~=0.17.2",
