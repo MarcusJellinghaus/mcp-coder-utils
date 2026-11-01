@@ -4,11 +4,11 @@
 
 `mcp-coder-utils` is a **leaf library** in the mcp-coder family of repositories.
 It provides shared low-level Python helpers (subprocess, logging, filesystem)
-consumed by `mcp-coder`, `mcp-tools-py`, `mcp-workspace`, and `mcp-config`.
+consumed by `mcp-coder`, `mcp-tools-py`, `mcp-workspace`, and `mcp-tools-sql`.
 
 ```
 ┌──────────────┐  ┌────────────────┐  ┌──────────────┐  ┌──────────────┐
-│  mcp_coder   │  │  mcp_tools_py  │  │ mcp_workspace│  │  mcp_config  │
+│  mcp_coder   │  │  mcp_tools_py  │  │ mcp_workspace│  │ mcp_tools_sql│
 └──────┬───────┘  └────────┬───────┘  └──────┬───────┘  └──────┬───────┘
        │                   │                 │                 │
        └───────────────────┴────────┬────────┴─────────────────┘
