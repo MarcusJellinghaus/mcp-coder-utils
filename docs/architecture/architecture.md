@@ -20,6 +20,8 @@ consumed by `mcp-coder`, `mcp-tools-py`, `mcp-workspace`, and `mcp-config`.
 
 ## Architectural rules
 
+Rules are enforced by tooling, see [enforcement.md](enforcement.md).
+
 1. **Pure Python, language-agnostic.** No knowledge of any specific ecosystem
    (no `pyproject.toml` parsing, no venv awareness, no `.csproj`, no SQL).
 2. **Zero internal dependencies.** Stdlib + a small set of pinned third-party
@@ -44,9 +46,11 @@ src/mcp_coder_utils/
     __init__.py
     py.typed
     log_utils.py
+    redaction.py
     subprocess_runner.py
     subprocess_streaming.py
     toolkit.py
+    user_app_data.py
     fs/
         __init__.py
         path_security.py
