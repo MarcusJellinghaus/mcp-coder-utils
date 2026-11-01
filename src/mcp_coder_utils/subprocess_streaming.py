@@ -141,7 +141,7 @@ def stream_subprocess(
         stderr_chunks: list[str] = []
 
         def _drain_stderr() -> None:
-            assert process.stderr is not None
+            assert process.stderr is not None  # noqa: S101 -- guaranteed by PIPE
             for line in process.stderr:
                 stderr_chunks.append(line)
 
@@ -154,7 +154,7 @@ def stream_subprocess(
             watchdog_thread.start()
 
         try:
-            assert process.stdout is not None  # guaranteed by PIPE
+            assert process.stdout is not None  # noqa: S101 -- guaranteed by PIPE
             for raw_line in process.stdout:
                 last_activity = time.time()
                 yield raw_line.rstrip("\n").rstrip("\r")

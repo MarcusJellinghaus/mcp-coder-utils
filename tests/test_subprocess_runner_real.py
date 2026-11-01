@@ -6,15 +6,12 @@ by exercising real Python subprocesses via sys.executable.
 
 import os
 import sys
-import tempfile
-import time
 from pathlib import Path
 
 import pytest
 
 from mcp_coder_utils.subprocess_runner import (
     CommandOptions,
-    CommandResult,
     execute_command,
     execute_subprocess,
     get_python_isolation_env,

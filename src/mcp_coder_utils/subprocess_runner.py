@@ -4,6 +4,7 @@ This module provides functions for executing command-line tools with proper
 timeout handling and STDIO isolation for Python commands.
 """
 
+import contextlib
 import logging
 import os
 import shlex
@@ -51,8 +52,7 @@ def check_tool_missing_error(
     """
     if f"No module named {tool_name}" in stderr:
         return (
-            f"{tool_name} is not installed in the Python environment "
-            f"at {python_path}."
+            f"{tool_name} is not installed in the Python environment at {python_path}."
         )
     return None
 
@@ -77,10 +77,7 @@ def format_command(command: list[str]) -> str:
     Returns:
         The formatted command string, truncated if longer than 200 characters.
     """
-    if os.name == "nt":
-        full = subprocess.list2cmdline(command)
-    else:
-        full = shlex.join(command)
+    full = subprocess.list2cmdline(command) if os.name == "nt" else shlex.join(command)
     if len(full) > 200:
         return full[:200] + "..."
     return full
@@ -260,7 +257,8 @@ def _kill_process(
     if os.name == "nt":
         try:
             subprocess.run(
-                ["taskkill", "/F", "/T", "/PID", str(process.pid)],
+                # taskkill is a Windows system tool, resolved via PATH by design.
+                ["taskkill", "/F", "/T", "/PID", str(process.pid)],  # noqa: S607
                 capture_output=True,
                 timeout=5,
                 check=False,
@@ -298,10 +296,8 @@ def _kill_process(
             )
             process.kill()
 
-    try:
+    with contextlib.suppress(subprocess.TimeoutExpired):
         process.wait(timeout=2)
-    except subprocess.TimeoutExpired:
-        pass
 
 
 def _run_subprocess(  # pylint: disable=too-many-statements
@@ -341,9 +337,11 @@ def _run_subprocess(  # pylint: disable=too-many-statements
             stderr_f = None
 
             try:
-                # Open files
-                stdout_f = open(stdout_file, "w", encoding="utf-8")
-                stderr_f = open(stderr_file, "w", encoding="utf-8")
+                # Open files. Lifetime is managed by hand, not `with`: the
+                # timeout handler must flush/close both before its Windows
+                # file-lock sleep and re-raise; the finally below closes them.
+                stdout_f = open(stdout_file, "w", encoding="utf-8")  # noqa: SIM115
+                stderr_f = open(stderr_file, "w", encoding="utf-8")  # noqa: SIM115
 
                 # Use Popen for better process control
                 popen_proc = None

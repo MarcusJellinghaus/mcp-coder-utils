@@ -4,11 +4,11 @@
 
 `mcp-coder-utils` is a **leaf library** in the mcp-coder family of repositories.
 It provides shared low-level Python helpers (subprocess, logging, filesystem)
-consumed by `mcp-coder`, `mcp-tools-py`, `mcp-workspace`, and `mcp-config`.
+consumed by `mcp-coder`, `mcp-tools-py`, `mcp-workspace`, and `mcp-tools-sql`.
 
 ```
 ┌──────────────┐  ┌────────────────┐  ┌──────────────┐  ┌──────────────┐
-│  mcp_coder   │  │  mcp_tools_py  │  │ mcp_workspace│  │  mcp_config  │
+│  mcp_coder   │  │  mcp_tools_py  │  │ mcp_workspace│  │ mcp_tools_sql│
 └──────┬───────┘  └────────┬───────┘  └──────┬───────┘  └──────┬───────┘
        │                   │                 │                 │
        └───────────────────┴────────┬────────┴─────────────────┘
@@ -20,11 +20,15 @@ consumed by `mcp-coder`, `mcp-tools-py`, `mcp-workspace`, and `mcp-config`.
 
 ## Architectural rules
 
+Rules are enforced by tooling, see [enforcement.md](enforcement.md).
+
 1. **Pure Python, language-agnostic.** No knowledge of any specific ecosystem
    (no `pyproject.toml` parsing, no venv awareness, no `.csproj`, no SQL).
 2. **Zero internal dependencies.** Stdlib + a small set of pinned third-party
    libs only. Never imports from `mcp_coder`, `mcp_tools_py`, `mcp_workspace`,
-   or `mcp_config`. Enforced by `.importlinter`.
+   or `mcp_config`. Enforced by `.importlinter`. Dependencies between modules
+   inside the package are declared in `tach.toml`; `tach check` enforces them
+   and forbids cycles.
 3. **≥2 real consumers required.** Every public function must have at least
    two real consumers (or be provably generic). Single-user "might be useful"
    helpers belong in the consumer.
@@ -42,9 +46,11 @@ src/mcp_coder_utils/
     __init__.py
     py.typed
     log_utils.py
+    redaction.py
     subprocess_runner.py
     subprocess_streaming.py
     toolkit.py
+    user_app_data.py
     fs/
         __init__.py
         path_security.py

@@ -7,25 +7,21 @@ import sys
 import tempfile
 import threading
 import time
+from collections.abc import Generator
 from pathlib import Path
-from typing import Generator
 from unittest.mock import patch
 
 import pytest
 
 from mcp_coder_utils.subprocess_runner import (
-    CalledProcessError,
     CommandOptions,
     CommandResult,
-    SubprocessError,
-    TimeoutExpired,
     _run_heartbeat,
     check_tool_missing_error,
     execute_command,
     execute_subprocess,
     format_command,
     get_python_isolation_env,
-    get_utf8_env,
     is_python_command,
     launch_process,
     prepare_env,
@@ -57,7 +53,10 @@ def temp_dir() -> Generator[Path, None, None]:
                 # This is expected on Windows sometimes
                 import warnings
 
-                warnings.warn(f"Could not clean up temp directory {tmp_path}: {e}")
+                warnings.warn(
+                    f"Could not clean up temp directory {tmp_path}: {e}",
+                    stacklevel=2,
+                )
             else:
                 raise
 
@@ -174,7 +173,8 @@ class TestCommandOptions:
 
     def test_command_options_custom(self) -> None:
         """Test CommandOptions with custom values."""
-        options = CommandOptions(
+        # shell=True is the field under test; nothing is executed.
+        options = CommandOptions(  # noqa: S604
             cwd="/tmp",
             timeout_seconds=60,
             env={"TEST": "value"},
@@ -475,10 +475,7 @@ class TestSTDIOIsolation:
 
     def test_non_python_subprocess(self) -> None:
         """Test regular subprocess execution for non-Python commands."""
-        if os.name == "nt":  # Windows
-            command = ["cmd", "/c", "echo hello"]
-        else:  # Unix/Linux
-            command = ["echo", "hello"]
+        command = ["cmd", "/c", "echo hello"] if os.name == "nt" else ["echo", "hello"]
 
         options = CommandOptions(timeout_seconds=5)
         result = execute_subprocess(command, options)
@@ -695,12 +692,12 @@ class TestIntegrationScenarios:
 
         assert len(results) == 3
         for thread_id, result in results:
-            assert isinstance(
-                result, CommandResult
-            ), f"Thread {thread_id} failed with: {result if isinstance(result, Exception) else 'Unknown error'}"
-            assert (
-                result.return_code == 0
-            ), f"Thread {thread_id} returned code {result.return_code}, stdout: {result.stdout}, stderr: {result.stderr}"
+            assert isinstance(result, CommandResult), (
+                f"Thread {thread_id} failed with: {result if isinstance(result, Exception) else 'Unknown error'}"
+            )
+            assert result.return_code == 0, (
+                f"Thread {thread_id} returned code {result.return_code}, stdout: {result.stdout}, stderr: {result.stderr}"
+            )
             assert f"Thread {thread_id} started" in result.stdout
             assert f"Thread {thread_id} finished" in result.stdout
 
@@ -747,9 +744,9 @@ class TestIntegrationScenarios:
             if result.execution_error and "PermissionError" in result.execution_error:
                 pytest.skip(f"Windows file locking issue: {result.execution_error}")
 
-            assert (
-                result.return_code == 0
-            ), f"Script failed with code {result.return_code}, stdout: {result.stdout}, stderr: {result.stderr}, error: {result.execution_error}"
+            assert result.return_code == 0, (
+                f"Script failed with code {result.return_code}, stdout: {result.stdout}, stderr: {result.stderr}, error: {result.execution_error}"
+            )
             # MCP variable should be removed (isolation)
             assert "MCP_STDIO_TRANSPORT: NOT_SET" in result.stdout
             # Custom variable should be preserved
@@ -874,7 +871,8 @@ class TestPrepareEnv:
 
     def test_env_inherits_parent_path(self) -> None:
         """Verify PATH from parent env is preserved (the bug fix)."""
-        original_path = os.environ.get("PATH", os.environ.get("Path", ""))
+        # "Path" is deliberate: Windows spells it that way; test is case-agnostic.
+        original_path = os.environ.get("PATH", os.environ.get("Path", ""))  # noqa: SIM112
         env = prepare_env(["echo", "hi"], {"MY_VAR": "test"}, None)
         # PATH should be inherited from os.environ, not lost
         env_path = env.get("PATH", env.get("Path", ""))
@@ -996,7 +994,8 @@ class TestLaunchProcess:
         """Verify args forwarded."""
         with patch("mcp_coder_utils.subprocess_runner.subprocess.Popen") as mock_popen:
             mock_popen.return_value.pid = 1
-            launch_process(["echo", "hi"], cwd="/tmp", shell=True)
+            # Popen is mocked; verifies shell=True is forwarded.
+            launch_process(["echo", "hi"], cwd="/tmp", shell=True)  # noqa: S604
             call_kwargs = mock_popen.call_args[1]
             assert call_kwargs["cwd"] == "/tmp"
             assert call_kwargs["shell"] is True
@@ -1014,9 +1013,9 @@ class TestLogOutput:
         # Find the debug call with "Starting subprocess execution"
         debug_calls = [str(c) for c in mock_logger.debug.call_args_list]
         matching = [c for c in debug_calls if "Starting subprocess execution" in c]
-        assert (
-            matching
-        ), f"No DEBUG log with 'Starting subprocess execution' found in {debug_calls}"
+        assert matching, (
+            f"No DEBUG log with 'Starting subprocess execution' found in {debug_calls}"
+        )
         # Should contain all command parts, not just first 3
         log_text = matching[0]
         assert "print" in log_text, f"Expected full command in log, got: {log_text}"

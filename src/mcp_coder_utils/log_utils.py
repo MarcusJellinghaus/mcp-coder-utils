@@ -5,9 +5,10 @@ import json
 import logging
 import os
 import time
+from collections.abc import Callable
 from functools import wraps
 from pathlib import Path
-from typing import Any, Callable, Optional, TypeVar, cast, overload
+from typing import Any, TypeVar, cast, overload
 
 import structlog
 from pythonjsonlogger.json import JsonFormatter
@@ -184,7 +185,7 @@ def _parse_level(level: str | int) -> int:
 
 def setup_logging(
     log_level: str | int,
-    log_file: Optional[str] = None,
+    log_file: str | None = None,
     console_level: str | int | None = None,
 ) -> None:
     """Configure logging to a file and/or the console, at independent levels.
@@ -347,10 +348,18 @@ def log_function_call(
             # Handle method calls (skip self/cls)
             if args and fn.__code__.co_varnames[0] in ("self", "cls"):
                 log_params.update(
-                    dict(zip(fn.__code__.co_varnames[1 : len(args)], args[1:]))
+                    dict(
+                        zip(
+                            fn.__code__.co_varnames[1 : len(args)],
+                            args[1:],
+                            strict=False,
+                        )
+                    )
                 )
             else:
-                log_params.update(dict(zip(fn.__code__.co_varnames[: len(args)], args)))
+                log_params.update(
+                    dict(zip(fn.__code__.co_varnames[: len(args)], args, strict=False))
+                )
 
             # Add keyword arguments
             log_params.update(kwargs)
