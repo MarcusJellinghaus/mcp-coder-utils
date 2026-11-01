@@ -4,6 +4,8 @@
 
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff) [![mypy](https://img.shields.io/badge/mypy-strict-blue)](https://mypy.readthedocs.io/) [![pylint](https://img.shields.io/badge/linting-pylint-yellowgreen)](https://github.com/pylint-dev/pylint) [![architecture](https://img.shields.io/badge/architecture-enforced-blue)](docs/architecture/enforcement.md) [![coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/MarcusJellinghaus/9a7892066964f11765a07d74285ad104/raw/mcp-coder-utils-coverage.json)](https://github.com/MarcusJellinghaus/mcp-coder-utils/actions/workflows/ci.yml)
 
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/MarcusJellinghaus/mcp-coder-utils/badge)](https://scorecard.dev/viewer/?uri=github.com/MarcusJellinghaus/mcp-coder-utils) [![CodeQL](https://github.com/MarcusJellinghaus/mcp-coder-utils/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/MarcusJellinghaus/mcp-coder-utils/actions/workflows/github-code-scanning/codeql)
+
 Shared low-level Python helpers (subprocess, logging, fs) for the mcp-coder family of repos.
 
 Leaf library: no internal dependencies, language-agnostic, safe to import from any MCP server or client in the mcp-coder ecosystem.
