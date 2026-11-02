@@ -59,8 +59,9 @@ forbidden_modules =
 # by `tools/check_forbidden_calls.py` (rules `subprocess` and `git`).
 #
 # Permanent exceptions:
-#   - tests.test_subprocess_runner: patches subprocess.Popen and asserts
-#     subprocess constants to exercise subprocess_runner itself
+#   - tests.test_subprocess_runner_execute, tests.test_subprocess_runner_process:
+#     patch subprocess.Popen and assert subprocess constants to exercise
+#     subprocess_runner itself
 # tools/ is outside root_packages and unchecked.
 # -----------------------------------------------------------------------------
 [importlinter:contract:subprocess_isolation]
@@ -74,4 +75,5 @@ forbidden_modules =
 ignore_imports =
     mcp_coder_utils.subprocess_runner -> subprocess
     mcp_coder_utils.subprocess_streaming -> subprocess
-    tests.test_subprocess_runner -> subprocess
+    tests.test_subprocess_runner_execute -> subprocess
+    tests.test_subprocess_runner_process -> subprocess
