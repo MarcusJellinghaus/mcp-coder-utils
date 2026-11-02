@@ -408,7 +408,7 @@ class TestLogFunctionCallWithSensitiveFields:
                     "github": {"token": "ghp_xxx"},
                     "jenkins": {
                         "api_token": "jenkins_xxx",
-                        "url": "http://example.com",
+                        "region": "eu-west-1",
                     },
                 }
 
@@ -424,7 +424,7 @@ class TestLogFunctionCallWithSensitiveFields:
 
             assert "ghp_xxx" not in result_str
             assert "jenkins_xxx" not in result_str
-            assert "http://example.com" in result_str
+            assert "eu-west-1" in result_str
 
     def test_log_function_call_non_dict_return_unchanged(self) -> None:
         """Test that non-dict return values work correctly with sensitive_fields."""
