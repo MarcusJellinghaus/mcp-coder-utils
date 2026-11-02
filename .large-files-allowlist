@@ -1,6 +1,3 @@
 # Files exempt from the file-size check (mcp-coder check file-size).
 # One path per line, relative to repo root.
 
-# Core implementation files that may be legitimately large
-src/mcp_coder_utils/subprocess_runner.py
-

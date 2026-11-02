@@ -4,9 +4,9 @@ import threading
 import time
 from unittest.mock import patch
 
+from mcp_coder_utils.process_helpers import _run_heartbeat
 from mcp_coder_utils.subprocess_runner import (
     CommandOptions,
-    _run_heartbeat,
     execute_subprocess,
     launch_process,
 )
@@ -126,7 +126,7 @@ class TestHeartbeat:
         """Verify logger.info called with expected format."""
         stop = threading.Event()
         start = time.time()
-        with patch("mcp_coder_utils.subprocess_runner.logger") as mock_logger:
+        with patch("mcp_coder_utils.process_helpers.logger") as mock_logger:
             t = threading.Thread(
                 target=_run_heartbeat,
                 args=(stop, 0.1, "working", start),
