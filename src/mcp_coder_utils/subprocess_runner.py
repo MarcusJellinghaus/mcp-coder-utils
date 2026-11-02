@@ -4,11 +4,9 @@ This module provides functions for executing command-line tools with proper
 timeout handling and STDIO isolation for Python commands.
 """
 
-import contextlib
 import logging
 import os
 import shlex
-import signal
 import subprocess
 import sys
 import tempfile
@@ -16,9 +14,11 @@ import threading
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
+from subprocess import CalledProcessError, SubprocessError, TimeoutExpired
+
+from mcp_coder_utils import subprocess_helpers
 
 # Re-export for external use (allows catching without direct subprocess import)
-from subprocess import CalledProcessError, SubprocessError, TimeoutExpired
 
 logger = logging.getLogger(__name__)
 
@@ -241,65 +241,6 @@ def prepare_env(
     return result
 
 
-def _kill_process(
-    process: subprocess.Popen[str], logger_instance: logging.Logger
-) -> None:
-    """Kill a subprocess and its children, platform-aware.
-
-    On Unix, sends SIGTERM to the process group, waits briefly, then
-    SIGKILL if the process is still alive.  On Windows, uses
-    ``taskkill /F /T``.  Falls back to ``process.kill()`` on failure.
-
-    Args:
-        process: The subprocess to kill.
-        logger_instance: Logger used for debug messages on fallback paths.
-    """
-    if os.name == "nt":
-        try:
-            subprocess.run(
-                # taskkill is a Windows system tool, resolved via PATH by design.
-                ["taskkill", "/F", "/T", "/PID", str(process.pid)],  # noqa: S607
-                capture_output=True,
-                timeout=5,
-                check=False,
-            )
-        except (subprocess.SubprocessError, OSError) as exc:
-            logger_instance.debug(
-                "Taskkill failed, using fallback",
-                extra={"error": str(exc), "pid": process.pid},
-            )
-            process.kill()
-    else:
-        try:
-            if (
-                hasattr(os, "killpg")
-                and hasattr(os, "getpgid")
-                and hasattr(signal, "SIGTERM")
-                and hasattr(signal, "SIGKILL")
-            ):
-                os.killpg(  # type: ignore[attr-defined,unused-ignore]
-                    os.getpgid(process.pid),  # type: ignore[attr-defined,unused-ignore]
-                    signal.SIGTERM,  # type: ignore[attr-defined,unused-ignore]
-                )
-                time.sleep(0.5)
-                if process.poll() is None:
-                    os.killpg(  # type: ignore[attr-defined,unused-ignore]
-                        os.getpgid(process.pid),  # type: ignore[attr-defined,unused-ignore]
-                        signal.SIGKILL,  # type: ignore[attr-defined,unused-ignore]
-                    )
-            else:
-                process.kill()
-        except (OSError, ProcessLookupError, AttributeError) as exc:
-            logger_instance.debug(
-                "Process group kill failed, using fallback",
-                extra={"error": str(exc), "pid": process.pid},
-            )
-            process.kill()
-
-    with contextlib.suppress(subprocess.TimeoutExpired):
-        process.wait(timeout=2)
-
-
 def _run_subprocess(  # pylint: disable=too-many-statements
     command: list[str], options: CommandOptions, use_stdio_isolation: bool = False
 ) -> subprocess.CompletedProcess[str]:
@@ -390,7 +331,7 @@ def _run_subprocess(  # pylint: disable=too-many-statements
                                     "cwd": options.cwd or "current",
                                 },
                             )
-                            _kill_process(popen_proc, logger)
+                            subprocess_helpers._kill_process(popen_proc, logger)
 
                         # Re-raise the timeout exception
                         raise
@@ -497,7 +438,7 @@ def _run_subprocess(  # pylint: disable=too-many-statements
                                 "cwd": options.cwd or "current",
                             },
                         )
-                        _kill_process(popen_proc, logger)
+                        subprocess_helpers._kill_process(popen_proc, logger)
                     raise
             else:
                 # No output capture needed
@@ -521,19 +462,6 @@ def _run_subprocess(  # pylint: disable=too-many-statements
         except Exception:  # pylint: disable=try-except-raise
             # Re-raise any other exceptions (this catch-all is needed for cleanup)
             raise
-
-
-def _run_heartbeat(
-    stop_event: threading.Event,
-    interval: int,
-    message: str,
-    start_time: float,
-) -> None:
-    """Heartbeat loop — runs in a daemon thread, logs at regular intervals."""
-    while not stop_event.wait(interval):
-        elapsed = time.time() - start_time
-        minutes, seconds = divmod(int(elapsed), 60)
-        logger.info("%s (elapsed: %dm %ds)", message, minutes, seconds)
 
 
 def execute_subprocess(
@@ -592,7 +520,7 @@ def execute_subprocess(
     if heartbeat_interval_seconds and heartbeat_interval_seconds > 0:
         stop_event = threading.Event()
         heartbeat_thread = threading.Thread(
-            target=_run_heartbeat,
+            target=subprocess_helpers._run_heartbeat,
             args=(
                 stop_event,
                 heartbeat_interval_seconds,

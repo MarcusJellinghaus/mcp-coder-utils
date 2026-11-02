@@ -11,10 +11,10 @@ import threading
 import time
 from collections.abc import Generator
 
+from mcp_coder_utils.subprocess_helpers import _kill_process
 from mcp_coder_utils.subprocess_runner import (
     CommandOptions,
     CommandResult,
-    _kill_process,
     prepare_env,
 )
 
