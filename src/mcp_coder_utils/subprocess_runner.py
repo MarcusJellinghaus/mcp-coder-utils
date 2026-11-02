@@ -16,7 +16,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from subprocess import CalledProcessError, SubprocessError, TimeoutExpired
 
-from mcp_coder_utils import process_helpers
+from mcp_coder_utils import subprocess_helpers
 
 # Re-export for external use (allows catching without direct subprocess import)
 
@@ -331,7 +331,7 @@ def _run_subprocess(  # pylint: disable=too-many-statements
                                     "cwd": options.cwd or "current",
                                 },
                             )
-                            process_helpers._kill_process(popen_proc, logger)
+                            subprocess_helpers._kill_process(popen_proc, logger)
 
                         # Re-raise the timeout exception
                         raise
@@ -438,7 +438,7 @@ def _run_subprocess(  # pylint: disable=too-many-statements
                                 "cwd": options.cwd or "current",
                             },
                         )
-                        process_helpers._kill_process(popen_proc, logger)
+                        subprocess_helpers._kill_process(popen_proc, logger)
                     raise
             else:
                 # No output capture needed
@@ -520,7 +520,7 @@ def execute_subprocess(
     if heartbeat_interval_seconds and heartbeat_interval_seconds > 0:
         stop_event = threading.Event()
         heartbeat_thread = threading.Thread(
-            target=process_helpers._run_heartbeat,
+            target=subprocess_helpers._run_heartbeat,
             args=(
                 stop_event,
                 heartbeat_interval_seconds,

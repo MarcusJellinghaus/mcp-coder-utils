@@ -58,11 +58,11 @@ depends_on = [
 path = "mcp_coder_utils.subprocess_runner"
 # Blocking subprocess execution with timeouts and environment handling.
 depends_on = [
-    { path = "mcp_coder_utils.process_helpers" },
+    { path = "mcp_coder_utils.subprocess_helpers" },
 ]
 
 [[modules]]
-path = "mcp_coder_utils.process_helpers"
+path = "mcp_coder_utils.subprocess_helpers"
 # Private process-kill and heartbeat helpers shared by subprocess_runner and
 # subprocess_streaming. Stdlib only.
 depends_on = []
@@ -71,7 +71,7 @@ depends_on = []
 path = "mcp_coder_utils.subprocess_streaming"
 # Line-by-line streaming with watchdog; reuses runner's types, env, kill.
 depends_on = [
-    { path = "mcp_coder_utils.process_helpers" },
+    { path = "mcp_coder_utils.subprocess_helpers" },
     { path = "mcp_coder_utils.subprocess_runner" },
 ]
 
