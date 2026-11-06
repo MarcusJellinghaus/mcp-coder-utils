@@ -2,7 +2,7 @@
 
 ## LLM prompt
 
-> Read `pr_info/steps/summary.md` and `pr_info/steps/step_1.md`, then implement step 1 of issue #55. Write the tests first and confirm the new ones fail, then change the code, whitelist and README. Run the checks listed in this step, and produce exactly one commit. Keep to the listed files.
+> Read `pr_info/steps/summary.md` and `pr_info/steps/step_1.md`, then implement step 1 of issue #55. Write the tests first and confirm the new ones fail, then change the code, whitelist and README. Run the checks listed in this step, then write the commit message to `pr_info/.commit_message.txt`. Keep to the listed files.
 
 ## WHERE
 
@@ -128,11 +128,12 @@ Run in this order, all of which must pass:
 2. `mcp__mcp-tools-py__run_pylint_check`
 3. `mcp__mcp-tools-py__run_mypy_check`
 4. `mcp__mcp-tools-py__run_vulture_check`
-5. `mcp__mcp-tools-py__run_format_code`, then stage and commit
 
 If a check fails on code outside the listed files, write one line to `pr_info/.blocked.txt` and stop.
 
 ## Commit
+
+Write this message to `pr_info/.commit_message.txt`. The mcp-coder implement workflow formats and commits.
 
 ```
 feat(toolkit): amend the contract before its first release

@@ -19,7 +19,7 @@ Make the contract work for any toolkit, a library or plain CLI configuration, be
 | Depths | Free-form, `ToolkitInfo.actions` "in order" | Position has no meaning. The caller resolves "nearest lower depth" and logs it, only within `quick < standard < full`. `unattended` and custom depths never fall back. `run` returns `error` for anything undeclared. |
 | Prompt fragments | Undocumented | README defines `language_context`, `check_instructions`, `fix.check` and `check_instructions.unattended`. |
 
-Only the first three rows change code. The rest are documentation: the base class cannot enforce them, because `run` is abstract, the depth ladder belongs to mcp-coder's core, and `PythonToolkit` adopts the rules in mcp-tools-py#272.
+Only config delivery, pre-flight and fix prompts change code. The rest are documentation: the base class cannot enforce them, because `run` is abstract, the depth ladder belongs to mcp-coder's core, and `PythonToolkit` adopts the rules in mcp-tools-py#272.
 
 ## Files
 
