@@ -73,14 +73,17 @@ def validate_params(schema: JsonSchema, params: Mapping[str, Any]) -> None:
 
 @dataclass(frozen=True)
 class Finding:
-    """A single issue reported by a toolkit action.
+    """Something that must be fixed, reported by a toolkit action.
+
+    Informational output, such as mypy notes, goes in `ActionResult.raw`.
 
     Attributes:
         key: Stable, line-insensitive identifier used to match findings across runs.
         message: Human-readable description.
         path: File the finding refers to, if any.
         rule: Rule or check identifier, if any.
-        severity: Free-form severity string; not validated.
+        severity: The tool's own label, free-form and not validated. It never
+            decides whether something is a finding.
     """
 
     key: str
@@ -115,7 +118,8 @@ class ActionResult:
         status: Overall outcome.
         summary: One-line human-readable summary.
         findings: Issues found; required for "findings", forbidden for "ok"/"skipped".
-        fix_text: Instructions for fixing the findings.
+        fix_text: What the fix prompt inlines. Must carry everything the LLM needs,
+            including locations.
         raw: Raw tool output.
     """
 
@@ -177,16 +181,14 @@ class ToolkitInfo:
     """Static description of a toolkit. Validated at construction only.
 
     Attributes:
-        actions: Action name mapped to its supported depths, in order.
+        actions: Action name mapped to its supported depths. Position has no meaning.
         params_schema: JSON Schema for action params; must be a closed object.
         llm_permissions: Permission lists for the LLM, keyed by name.
-        fix_prompts: Prompts for fixing findings, keyed by name.
     """
 
     actions: dict[str, list[str]]
     params_schema: JsonSchema
     llm_permissions: dict[str, dict[str, list[str]]] = field(default_factory=dict)
-    fix_prompts: dict[str, str] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         """Validate params_schema.
@@ -208,16 +210,24 @@ class ToolkitInfo:
 class Toolkit(ABC):
     """Base class for toolkits run by mcp-coder.
 
-    `describe` receives the toolkit's own config section. `run` never raises
+    The constructor stores the toolkit's own config section. `run` never raises
     for ordinary findings; a crash is returned as status "error".
     """
 
-    @abstractmethod
-    def describe(self, config: Mapping[str, Any]) -> ToolkitInfo:
-        """Describe the toolkit's actions and params.
+    def __init__(self, config: Mapping[str, Any] | None = None) -> None:
+        """Store the toolkit's own config section as public `self.config`.
+
+        It only stores; config problems surface in `verify`.
 
         Args:
-            config: The toolkit's own config section.
+            config: The toolkit's own config section. `self.config` is always a
+                mapping, empty when none is given.
+        """
+        self.config: Mapping[str, Any] = {} if config is None else config
+
+    @abstractmethod
+    def describe(self) -> ToolkitInfo:
+        """Describe the toolkit's actions and params.
 
         Returns:
             The toolkit description.
@@ -231,7 +241,9 @@ class Toolkit(ABC):
             request: The action to run.
 
         Returns:
-            The action outcome; a crash is returned as status "error".
+            The action outcome; a crash is returned as status "error". An action
+            or depth the toolkit doesn't declare also returns status "error",
+            rather than raising or running something else.
         """
 
     def prompt_fragments(self) -> dict[str, str]:
@@ -242,11 +254,14 @@ class Toolkit(ABC):
         """
         return {}
 
-    def verify(self, project_dir: Path) -> list[VerifyItem]:
+    def verify(self, project_dir: Path, action: str | None = None) -> list[VerifyItem]:
         """Check that the toolkit can run in a project.
 
         Args:
             project_dir: Root directory of the project.
+            action: `None` checks everything; a name checks only what that action
+                needs. An overriding toolkit returns an "error" item for an action
+                it doesn't declare.
 
         Returns:
             One item per check; empty by default.
