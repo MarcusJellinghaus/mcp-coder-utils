@@ -28,5 +28,4 @@ ActionResult.summary  # noqa
 from mcp_coder_utils.toolkit import Toolkit, ToolkitInfo
 ToolkitInfo.actions  # noqa
 Toolkit.describe  # noqa
-Toolkit.describe.config  # noqa  # abstract-method parameter
 

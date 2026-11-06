@@ -1,9 +1,7 @@
 """Tests for toolkit module."""
 
 import dataclasses
-from collections.abc import Mapping
 from pathlib import Path
-from typing import Any
 
 import pytest
 
@@ -161,7 +159,6 @@ class TestToolkitInfo:
         """Test construction with a valid schema and default fields."""
         info = ToolkitInfo(actions={"check": ["quick"]}, params_schema=SCHEMA)
         assert info.llm_permissions == {}
-        assert info.fix_prompts == {}
 
     def test_malformed_schema_raises(self) -> None:
         """Test that a malformed schema is rejected."""
@@ -213,7 +210,7 @@ class TestToolkitInfo:
 class _MinimalToolkit(Toolkit):
     """Toolkit implementing only the abstract methods."""
 
-    def describe(self, config: Mapping[str, Any]) -> ToolkitInfo:
+    def describe(self) -> ToolkitInfo:
         return ToolkitInfo(actions={}, params_schema=SCHEMA)
 
     def run(self, request: ActionRequest) -> ActionResult:
@@ -228,8 +225,18 @@ class TestToolkit:
         with pytest.raises(TypeError):
             Toolkit()  # type: ignore[abstract]  # pylint: disable=abstract-class-instantiated
 
+    def test_config_defaults_to_empty_mapping(self) -> None:
+        """Test that config is an empty mapping when none is given."""
+        assert _MinimalToolkit().config == {}
+
+    def test_config_is_stored(self) -> None:
+        """Test that the given config is stored."""
+        config = {"argv": ["npm", "test"]}
+        assert _MinimalToolkit(config).config == config
+
     def test_defaults(self, tmp_path: Path) -> None:
         """Test default prompt_fragments and verify."""
         toolkit = _MinimalToolkit()
         assert toolkit.prompt_fragments() == {}
         assert toolkit.verify(tmp_path) == []
+        assert toolkit.verify(tmp_path, action="format") == []

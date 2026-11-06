@@ -24,8 +24,8 @@ pip install mcp-coder-utils
 
 | Name | Purpose |
 |------|---------|
-| `Toolkit` | Abstract base class. `describe` and `run` are required; `prompt_fragments` defaults to `{}` and `verify` to `[]`. |
-| `ToolkitInfo` | What `describe` returns: actions with their depths, params schema, LLM permissions, fix prompts. |
+| `Toolkit` | Abstract base class with the constructor `Toolkit(config: Mapping[str, Any] \| None = None)`, which stores the toolkit's own config section as public `self.config`, always a mapping (empty when none is given). It only stores; config problems surface in `verify`. `describe()` and `run(request)` are required; `prompt_fragments()` defaults to `{}` and `verify(project_dir, action=None)` to `[]`. All four read `self.config`. |
+| `ToolkitInfo` | What `describe` returns: actions with their depths, params schema, LLM permissions. |
 | `ActionRequest` | Input to `run`: action, depth, project directory, params. |
 | `ActionResult` | Output of `run`: status, summary, findings, fix text, raw output. |
 | `Finding` | One issue reported by an action. |
@@ -39,14 +39,20 @@ pip install mcp-coder-utils
 
 `ActionResult.status`:
 
-- `ok` — the action ran and found nothing. Must carry no findings.
+- `ok` — the action ran and found nothing that must be fixed. Must carry no findings.
 - `findings` — the action ran and found issues. Requires at least one finding.
-- `error` — the action could not run. Findings are allowed but not required.
+- `error` — the action could not run, including an action or depth `run` doesn't declare. Findings are allowed but not required.
 - `skipped` — the action did not apply. Must carry no findings.
 
-`run` returns ordinary problems as findings and crashes as `error`; it does not raise.
+`run` returns ordinary problems as findings, and crashes and anything undeclared as `error`. It does not raise, and it does not run something else.
 
-`VerifyItem.status` is `ok`, `warning` or `error`. `Finding.severity` is a free string, conventionally `"error"` or `"warning"`, and is not validated.
+A finding is something that must be fixed. Informational output, such as mypy notes, goes in `raw`. `Finding.severity` is the tool's own label, a free string that is not validated. It never decides whether something is a finding.
+
+`fix_text` is what the fix prompt inlines. It must carry everything the LLM needs, including locations.
+
+`VerifyItem.status` is `ok`, `warning` or `error`.
+
+`verify(project_dir, action=None)`: `None` checks everything; an action name checks only what that action needs. A toolkit that overrides `verify` returns an `error` item for an action it doesn't declare. The base default is `[]`.
 
 ### Mutability
 
@@ -67,7 +73,26 @@ mcp-tools-py = "mcp_tools_py.toolkit:PythonToolkit"
 
 ### Depths
 
-Depths are free-form strings defined per toolkit. `quick`, `standard` and `full` are conventions; the `format` action uses `apply` and `check`.
+Depths are free-form strings defined per toolkit. `quick`, `standard` and `full` are conventions; the `format` action uses `apply` and `check`, which are custom depths.
+
+`unattended` is a conventional depth for runs with nobody watching: skip whatever reaches external services. Only the toolkit knows how to express that. A toolkit that needs it declares it.
+
+The caller resolves "nearest lower depth" and logs it, only within `quick < standard < full`. If no lower depth is declared, the result is an error. Position in `ToolkitInfo.actions` has no meaning. `unattended` and custom depths never fall back.
+
+`run` has no ladder: it returns `error` for any action or depth it doesn't declare.
+
+### Prompt fragments
+
+`prompt_fragments()` returns text for mcp-coder's prompts, keyed by name:
+
+| Key | Meaning |
+|-----|---------|
+| `language_context` | What kind of project this is. |
+| `check_instructions` | How the LLM re-runs the checks. |
+| `fix.check` | The fix prompt for the `check` action, and the only home for fix prompts. |
+| `check_instructions.unattended` | Text the LLM needs in order to re-run tests the way `unattended` does. |
+
+An empty fragment drops its paragraph, and a missing one uses neutral text. A toolkit that omits `fix.check` disables that fix loop. Where `fix_text` goes in the assembled prompt is left to MarcusJellinghaus/mcp_coder#1197.
 
 ### Versioning
 
