@@ -21,6 +21,15 @@ This tracks **Feature Implementation** consisting of multiple **Tasks**.
 
 ## Tasks
 
-<!-- Tasks populated from pr_info/steps/ by prepare_task_tracker -->
+### Step 1: Amend the toolkit contract and document it
+
+Details: [step_1.md](./steps/step_1.md)
+
+- [ ] Implementation (tests + production code): `tests/test_toolkit.py`, `src/mcp_coder_utils/toolkit.py`, `vulture_whitelist.py`, `README.md`
+- [ ] Quality checks: pylint, pytest, mypy, vulture — fix all issues
+- [ ] Commit message prepared in `pr_info/.commit_message.txt`
 
 ## Pull Request
+
+- [ ] PR review: review all changes on the branch against `pr_info/steps/summary.md`
+- [ ] PR summary: prepare the title and description, including the merge order with mcp-tools-py#272
