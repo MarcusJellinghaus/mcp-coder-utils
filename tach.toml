@@ -81,6 +81,11 @@ path = "mcp_coder_utils.toolkit"
 depends_on = []
 
 [[modules]]
+path = "mcp_coder_utils.tool_spec"
+# Tool contract (ToolSpec, ToolSink) for MCP and non-MCP consumers. No internal dependencies.
+depends_on = []
+
+[[modules]]
 path = "mcp_coder_utils.user_app_data"
 # Per-user application data directory resolution. No internal dependencies.
 depends_on = []
