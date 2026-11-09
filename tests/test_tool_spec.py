@@ -1,6 +1,7 @@
 """Tests for tool_spec module."""
 
 import dataclasses
+import functools
 import inspect
 import warnings
 from collections.abc import Callable
@@ -156,6 +157,8 @@ class TestToolSpec:
             (no_doc, {}, "description"),
             (query_x, {"name": ""}, "name"),
             (query_x, {"description": ""}, "description"),
+            (functools.partial(query_x, table="t"), {}, "name"),
+            (functools.partial(query_x, table="t"), {"name": "p"}, "description"),
         ],
     )
     def test_missing_name_or_description(

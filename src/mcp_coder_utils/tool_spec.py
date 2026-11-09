@@ -97,8 +97,13 @@ def tool_spec(
         ValueError: If the name or description is empty, or the signature
             cannot be modelled.
     """
-    name = fn.__name__ if name is None else name
-    description = fn.__doc__ if description is None else description
+    # A callable without its own __name__ (e.g. functools.partial) would
+    # otherwise report its class docstring as the tool description.
+    fn_name = getattr(fn, "__name__", None)
+    if name is None:
+        name = fn_name
+    if description is None and fn_name:
+        description = fn.__doc__
     if not name:
         raise ValueError("tool name must not be empty")
     if not description:
