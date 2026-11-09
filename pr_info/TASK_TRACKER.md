@@ -21,6 +21,19 @@ This tracks **Feature Implementation** consisting of multiple **Tasks**.
 
 ## Tasks
 
-<!-- Tasks populated from pr_info/steps/ by prepare_task_tracker -->
+### Step 1: `tool_spec` module, tests, dependency and config — [step_1.md](./steps/step_1.md)
+
+- [ ] Implementation: `tests/test_tool_spec.py`, `src/mcp_coder_utils/tool_spec.py`, `pyproject.toml`, `tach.toml`, `.importlinter`, `vulture_whitelist.py`
+- [ ] Quality checks: pylint, pytest, mypy, lint-imports, tach, vulture — fix all issues
+- [ ] Commit message prepared
+
+### Step 2: README and architecture docs — [step_2.md](./steps/step_2.md)
+
+- [ ] Implementation: `README.md`, `docs/architecture/architecture.md`, `docs/architecture/enforcement.md`
+- [ ] Quality checks: pylint, pytest, mypy — fix all issues
+- [ ] Commit message prepared
 
 ## Pull Request
+
+- [ ] PR review: review the full branch diff against `main`
+- [ ] PR summary prepared
