@@ -23,9 +23,9 @@ This tracks **Feature Implementation** consisting of multiple **Tasks**.
 
 ### Step 1: `tool_spec` module, tests, dependency and config — [step_1.md](./steps/step_1.md)
 
-- [ ] Implementation: `tests/test_tool_spec.py`, `src/mcp_coder_utils/tool_spec.py`, `pyproject.toml`, `tach.toml`, `.importlinter`, `vulture_whitelist.py`
-- [ ] Quality checks: pylint, pytest, mypy, lint-imports, tach, vulture — fix all issues
-- [ ] Commit message prepared
+- [x] Implementation: `tests/test_tool_spec.py`, `src/mcp_coder_utils/tool_spec.py`, `pyproject.toml`, `tach.toml`, `.importlinter`, `vulture_whitelist.py`
+- [x] Quality checks: pylint, pytest, mypy, lint-imports, tach, vulture — fix all issues
+- [x] Commit message prepared
 
 ### Step 2: README and architecture docs — [step_2.md](./steps/step_2.md)
 

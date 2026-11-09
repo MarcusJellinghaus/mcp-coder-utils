@@ -23,6 +23,7 @@ dependencies = [
     "python-json-logger>=3.3.0",
     "jsonschema>=4.20",
     "referencing>=0.28.4",
+    "pydantic>=2.7,<3",
 ]
 
 [project.optional-dependencies]

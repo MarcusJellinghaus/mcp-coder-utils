@@ -50,6 +50,23 @@ forbidden_modules =
     mcp_config
 
 # -----------------------------------------------------------------------------
+# Contract: No MCP or Agent Framework Dependencies
+# -----------------------------------------------------------------------------
+# mcp_coder_utils.tool_spec is consumed by both FastMCP servers and non-MCP
+# apps (LangGraph). The library must stay framework-neutral.
+# -----------------------------------------------------------------------------
+[importlinter:contract:no_agent_frameworks]
+name = No MCP or Agent Framework Dependencies
+type = forbidden
+source_modules =
+    mcp_coder_utils
+forbidden_modules =
+    mcp
+    langchain
+    langchain_core
+    chainlit
+
+# -----------------------------------------------------------------------------
 # Contract: Subprocess Library Isolation
 # -----------------------------------------------------------------------------
 # The 'subprocess' module should only be used by subprocess_runner and
