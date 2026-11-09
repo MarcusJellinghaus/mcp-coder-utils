@@ -111,7 +111,7 @@ return ToolSpec(name, description, fn, args_model, group, read_only)
 `_build_args_model`:
 ```
 try: sig = inspect.signature(fn, eval_str=True)
-except Exception as exc: raise ValueError(f"cannot resolve signature of {name}: {exc}") from exc
+except Exception as exc: raise ValueError(f"cannot resolve signature of {model_name}: {exc}") from exc
 for p in sig.parameters.values():
     reject (ValueError, naming the parameter) VAR_POSITIONAL, VAR_KEYWORD, POSITIONAL_ONLY,
     names starting with "_", annotation is inspect.Parameter.empty
