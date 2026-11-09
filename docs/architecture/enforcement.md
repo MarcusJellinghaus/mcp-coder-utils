@@ -6,6 +6,8 @@ An LLM working on this code sees only part of it and doesn't know the big pictur
 
 `mcp_coder_utils` is the bottom of the mcp-coder dependency graph. Importing a sibling repo (`mcp_coder`, `mcp_tools_py`, `mcp_workspace`, `mcp_config`) would create a cycle between repos. Ruleset: the `leaf_library` contract in [`.importlinter`](../../.importlinter). The package also has no git knowledge: an argv starting with `"git"` is caught by rule `git` in [`tools/check_forbidden_calls.py`](../../tools/check_forbidden_calls.py).
 
+`mcp_coder_utils` also stays framework-neutral. The tool contract is consumed by FastMCP servers and non-MCP apps, so importing `mcp`, `langchain`, `langchain_core` or `chainlit` would force one framework on every consumer. Ruleset: the `no_agent_frameworks` contract in [`.importlinter`](../../.importlinter).
+
 ## Independence between modules
 
 There is no layer stack: the package is two pairs (`log_utils` -> `redaction`, `subprocess_streaming` -> `subprocess_runner`) plus standalone modules. Each module declares what it may import, so a new dependency between modules is a visible decision. Ruleset: the `depends_on` lists in [`tach.toml`](../../tach.toml). Production code never imports tests: the `no_test_imports_in_source` contract in [`.importlinter`](../../.importlinter).

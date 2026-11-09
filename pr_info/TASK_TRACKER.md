@@ -29,9 +29,9 @@ This tracks **Feature Implementation** consisting of multiple **Tasks**.
 
 ### Step 2: README and architecture docs — [step_2.md](./steps/step_2.md)
 
-- [ ] Implementation: `README.md`, `docs/architecture/architecture.md`, `docs/architecture/enforcement.md`
-- [ ] Quality checks: pylint, pytest, mypy — fix all issues
-- [ ] Commit message prepared
+- [x] Implementation: `README.md`, `docs/architecture/architecture.md`, `docs/architecture/enforcement.md`
+- [x] Quality checks: pylint, pytest, mypy — fix all issues
+- [x] Commit message prepared
 
 ## Pull Request
 
