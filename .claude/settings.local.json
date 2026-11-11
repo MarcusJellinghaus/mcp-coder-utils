@@ -47,6 +47,7 @@
       "mcp__mcp-tools-py__move_module",
       "mcp__mcp-tools-py__move_symbol",
       "mcp__mcp-tools-py__rename_symbol",
+      "mcp__mcp-tools-py__run_deptry_check",
       "mcp__mcp-tools-py__run_format_code",
       "mcp__mcp-tools-py__run_lint_imports_check",
       "mcp__mcp-tools-py__run_mypy_check",
