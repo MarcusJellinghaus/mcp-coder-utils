@@ -1,7 +1,7 @@
 name: Notify downstream of main update
 
 # When this repo's main changes, fan out repository_dispatch events to
-# mcp-workspace, mcp-tools-py, and mcp_coder so each can re-run mypy
+# mcp-workspace, mcp-tools-py, mcp_coder, and mcp-tools-sql so each can re-run mypy
 # against the latest main of this package.
 #
 # Requires repo secret DOWNSTREAM_PAT — a fine-grained PAT with
@@ -26,7 +26,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        downstream: [mcp-workspace, mcp-tools-py, mcp_coder]
+        downstream: [mcp-workspace, mcp-tools-py, mcp_coder, mcp-tools-sql]
     steps:
       - name: Send upstream-main-updated to ${{ matrix.downstream }}
         uses: peter-evans/repository-dispatch@28959ce8df70de7be546dd1250a005dd32156697 # v4.0.1
