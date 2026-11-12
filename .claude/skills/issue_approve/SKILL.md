@@ -4,9 +4,10 @@ disable-model-invocation: true
 argument-hint: "<issue-number> [--repo owner/repo]"
 allowed-tools:
   - mcp__mcp-workspace__github_issue_view
-  - "Bash(gh issue view *)"
-  - "Bash(MSYS_NO_PATHCONV=1 gh issue comment *)"
-  - mcp__mcp-tools-py__sleep
+  - mcp__mcp-workspace__git
+  - "Bash(mcp-coder gh-tool set-status *)"
+  - mcp__mcp-workspace__github_issue_comment
+  - mcp__mcp-workspace__get_reference_projects
   - mcp__mcp-workspace__read_file
 ---
 
@@ -24,16 +25,27 @@ If no issue number is provided:
 
 ## Cross-Repo Issues
 
-If a `--repo owner/repo` flag was given, append it to every `gh` command below, and fetch the
-issue with `gh issue view <issue_number> --repo owner/repo` via Bash —
-`mcp__mcp-workspace__github_issue_view` only reaches the current repository.
+- If `--repo owner/repo` was given, compare it with `origin` (`mcp__mcp-workspace__git`,
+  command `ls_remote`, args `["--get-url", "origin"]`). Normalise both: accept
+  `https://github.com/owner/repo` and `git@github.com:owner/repo` forms, drop a trailing
+  `.git`, compare case-insensitively.
+- Match → ignore `--repo` entirely; follow the normal (workspace) path.
+- No match (or no `origin`) → cross-repo. Call `mcp__mcp-workspace__get_reference_projects()`
+  and pick the entry whose `url` normalises (as above) to `owner/repo`. Use its `name` as
+  `reference_name` on every GitHub tool call. Entries with a null `url` never match.
+- No matching entry → stop and report "not a reference project". There is no other route.
+- **Never** pass a repo to `set-status`.
 
 ## Instructions
 
 1. Fetch the issue to confirm it exists:
-   Call `mcp__mcp-workspace__github_issue_view` with the issue number (or `gh issue view` for cross-repo).
+   Call `mcp__mcp-workspace__github_issue_view` with the issue number (plus `reference_name`
+   for cross-repo). Cross-repo only: success means the output starts with `# #<number>: `,
+   or is `# #<number>` followed by a newline (untrusted author; proceed normally). Anything
+   else → "approval failed: <result>".
 
-   Note its current status label — step 5 compares against it.
+   Note its status labels (labels prefixed `status-`) — step 3 uses them for the promotable
+   check and the `--from-status` value.
 
 2. Validate that the issue is ready for approval:
    - Issue has been analyzed/discussed
@@ -42,23 +54,42 @@ issue with `gh issue view <issue_number> --repo owner/repo` via Bash —
 
    If any check fails, stop and report — do not approve.
 
-3. Comment `/approve` on the issue (use MSYS_NO_PATHCONV to prevent Windows Git Bash path conversion):
+3. **Promote.**
 
-```bash
-MSYS_NO_PATHCONV=1 gh issue comment <issue_number> --body "/approve"
-```
+   | current | next |
+   |---|---|
+   | `status-01:created` | `status-02:awaiting-planning` |
+   | `status-04:plan-review` | `status-05:plan-ready` |
+   | `status-07:code-review` | `status-08:ready-pr` |
 
-This triggers the GitHub Action to promote the issue status (e.g., `status-01:created` → `status-02:awaiting-planning`).
+   - More than one status label → don't promote; report "nothing to approve (multiple
+     status labels: X, Y)".
+   - Current status not in the table (including no status label) → don't promote; report
+     "nothing to approve".
+   - Cross-repo → call
+     `mcp__mcp-workspace__github_issue_comment(number=…, reference_name=…, body="/approve")`
+     and report "approval requested, not confirmed". No polling.
+   - Otherwise run from the project directory (no `--project-dir`, no output redirection —
+     the result is printed on stderr):
+     ```bash
+     mcp-coder gh-tool set-status <next> --from-status <current> --issue <issue_number> --force
+     ```
+     `--force` only skips the clean-tree check, irrelevant for a label change.
+     Do **not** also comment `/approve` — the Action would race this call.
 
-4. **Wait 5 seconds** — call `mcp__mcp-tools-py__sleep` with `sleep_seconds: 5` — to give the
-   GitHub Action time to apply the label transition.
+4. **Report** the issue number and the outcome:
 
-5. **Confirm the transition landed.** Re-fetch the issue and compare its status label against
-   what you saw in step 1. The comment in step 3 only *requests* the transition; the Action
-   performs it, and it can be slow or fail.
+   | `set-status` result | Report |
+   |---|---|
+   | exit 0, `Updated issue #N to <next>` | `<current> → <next>` |
+   | exit 0, `Skipped set-status to '…': current label is 'X', expected 'Y'` | "not approved (current status X)" |
+   | non-zero exit | "approval failed: <error output>" — stop; no retry, no `/approve` fallback |
 
-   If the label has not changed, report the issue as still sitting at its old status.
+   | Cross-repo comment result | Report |
+   |---|---|
+   | starts with `Added comment to issue #` | "approval requested, not confirmed" |
+   | anything else | "approval failed: <result>" — no retry |
 
-6. Report the issue number and the status transition (from → to, or "unchanged").
+   Not-called outcomes are reported as stated in step 3.
 
 **Note:** This skill has `disable-model-invocation` — it can only be run by the user typing `/issue_approve`. If you need this skill as a follow-up, tell the user: "Please run `/issue_approve` to proceed."
