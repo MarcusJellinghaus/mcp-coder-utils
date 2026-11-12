@@ -47,9 +47,12 @@ src/mcp_coder_utils/
     py.typed
     log_utils.py
     redaction.py
+    subprocess_helpers.py
     subprocess_runner.py
     subprocess_streaming.py
+    tool_provider.py
     tool_spec.py
+    tool_verify.py
     toolkit.py
     user_app_data.py
     fs/

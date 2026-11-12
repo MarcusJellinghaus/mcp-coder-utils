@@ -38,9 +38,9 @@ See [step_2.md](./steps/step_2.md)
 ### Step 3: Module dependency graph docs
 See [step_3.md](./steps/step_3.md)
 
-- [ ] Implementation: `tach.toml` header comment, `docs/architecture/enforcement.md` "Independence between modules", `docs/architecture/architecture.md` "Package layout"
-- [ ] Quality checks (format, pylint, pytest, mypy, ruff, lint-imports, tach, vulture) — fix all issues
-- [ ] Commit message prepared: `docs(architecture): describe the real module dependency graph`
+- [x] Implementation: `tach.toml` header comment, `docs/architecture/enforcement.md` "Independence between modules", `docs/architecture/architecture.md` "Package layout"
+- [x] Quality checks (format, pylint, pytest, mypy, ruff, lint-imports, tach, vulture) — fix all issues
+- [x] Commit message prepared: `docs(architecture): describe the real module dependency graph`
 
 ### Step 4: Package role wording and sibling-repo lists
 See [step_4.md](./steps/step_4.md)

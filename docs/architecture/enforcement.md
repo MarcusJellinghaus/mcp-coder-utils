@@ -12,7 +12,7 @@ An LLM working on this code sees only part of it and doesn't know the big pictur
 
 ## Independence between modules
 
-There is no layer stack: the package is two pairs (`log_utils` -> `redaction`, `subprocess_streaming` -> `subprocess_runner`) plus standalone modules. Each module declares what it may import, so a new dependency between modules is a visible decision. Ruleset: the `depends_on` lists in [`tach.toml`](../../tach.toml). Production code never imports tests: the `no_test_imports_in_source` contract in [`.importlinter`](../../.importlinter).
+There is no layer stack. The only dependencies between modules are `log_utils` -> `redaction`; `subprocess_streaming` -> `subprocess_runner`, `subprocess_helpers`; `subprocess_runner` -> `subprocess_helpers`; `tool_provider` -> `tool_spec`, `tool_verify`; `toolkit` -> `tool_verify`. All other modules are standalone. Each module declares what it may import, so a new dependency between modules is a visible decision. Ruleset: the `depends_on` lists in [`tach.toml`](../../tach.toml). Production code never imports tests: the `no_test_imports_in_source` contract in [`.importlinter`](../../.importlinter).
 
 ## Third-party wrappers
 
