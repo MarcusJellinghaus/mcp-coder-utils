@@ -52,9 +52,9 @@ See [step_4.md](./steps/step_4.md)
 ### Step 5: README — `## Toolset providers` section and Toolkit interface rows
 See [step_5.md](./steps/step_5.md)
 
-- [ ] Implementation: `README.md` Toolkit interface rows, new `## Toolset providers` section (Public API, Rules, Registration, Versioning, Example)
-- [ ] Quality checks (format, pylint, pytest, mypy, ruff, lint-imports, tach, vulture, file size ≤ 750 lines) — fix all issues
-- [ ] Commit message prepared: `docs(readme): document the toolset provider contract`
+- [x] Implementation: `README.md` Toolkit interface rows, new `## Toolset providers` section (Public API, Rules, Registration, Versioning, Example)
+- [x] Quality checks (format, pylint, pytest, mypy, ruff, lint-imports, tach, vulture, file size ≤ 750 lines) — fix all issues
+- [x] Commit message prepared: `docs(readme): document the toolset provider contract`
 
 ## Pull Request
 
