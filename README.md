@@ -6,7 +6,7 @@
 
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/MarcusJellinghaus/mcp-coder-utils/badge)](https://scorecard.dev/viewer/?uri=github.com/MarcusJellinghaus/mcp-coder-utils) [![CodeQL](https://github.com/MarcusJellinghaus/mcp-coder-utils/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/MarcusJellinghaus/mcp-coder-utils/actions/workflows/github-code-scanning/codeql)
 
-Shared low-level Python helpers (subprocess, logging, fs) for the mcp-coder family of repos.
+Shared low-level Python helpers (subprocess, logging, fs) and tool contracts (toolkit, tool spec, toolset provider) for the mcp-coder family of repos.
 
 Leaf library: no internal dependencies, language-agnostic, safe to import from any MCP server or client in the mcp-coder ecosystem.
 
@@ -169,3 +169,5 @@ This creates a local `.venv`, installs the package in editable mode with dev dep
 - [mcp-tools-py](https://github.com/MarcusJellinghaus/mcp-tools-py) — MCP server: Python code checks
 - [mcp-workspace](https://github.com/MarcusJellinghaus/mcp-workspace) — MCP server: file operations
 - [mcp-config](https://github.com/MarcusJellinghaus/mcp-config) — MCP client config CLI
+- [mcp-tools-sql](https://github.com/MarcusJellinghaus/mcp-tools-sql) — tool package: SQL tools
+- [agent-workbench](https://github.com/MarcusJellinghaus/agent-workbench) — chat app: loads tool packages as plugins

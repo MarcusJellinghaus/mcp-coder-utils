@@ -4,7 +4,7 @@ An LLM working on this code sees only part of it and doesn't know the big pictur
 
 ## Leaf library
 
-`mcp_coder_utils` is the bottom of the mcp-coder dependency graph. Importing a sibling repo (`mcp_coder`, `mcp_tools_py`, `mcp_workspace`, `mcp_config`) would create a cycle between repos. Ruleset: the `leaf_library` contract in [`.importlinter`](../../.importlinter). The package also has no git knowledge: an argv starting with `"git"` is caught by rule `git` in [`tools/check_forbidden_calls.py`](../../tools/check_forbidden_calls.py).
+`mcp_coder_utils` is the bottom of the mcp-coder dependency graph. Importing a sibling repo (`mcp_coder`, `mcp_tools_py`, `mcp_workspace`, `mcp_config`, `mcp_tools_sql`, `agent_workbench`) would create a cycle between repos. Ruleset: the `leaf_library` contract in [`.importlinter`](../../.importlinter). The package also has no git knowledge: an argv starting with `"git"` is caught by rule `git` in [`tools/check_forbidden_calls.py`](../../tools/check_forbidden_calls.py).
 
 `mcp_coder_utils` also stays framework-neutral. The tool contract is consumed by FastMCP servers and non-MCP apps, so importing `mcp`, `langchain`, `langchain_core` or `chainlit` would force one framework on every consumer. Ruleset: the `no_agent_frameworks` contract in [`.importlinter`](../../.importlinter).
 

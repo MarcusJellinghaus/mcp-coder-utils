@@ -45,9 +45,9 @@ See [step_3.md](./steps/step_3.md)
 ### Step 4: Package role wording and sibling-repo lists
 See [step_4.md](./steps/step_4.md)
 
-- [ ] Implementation: `.importlinter` `leaf_library`, `docs/architecture/enforcement.md`, `docs/architecture/architecture.md` (role, diagram, rules 2 and 4), `README.md` intro + related repos, `pyproject.toml` description, `.claude/CLAUDE.md`
-- [ ] Quality checks (format, pylint, pytest, mypy, ruff, lint-imports, tach, vulture) — fix all issues
-- [ ] Commit message prepared: `docs: name tool contracts in the package role; add mcp-tools-sql and agent-workbench`
+- [x] Implementation: `.importlinter` `leaf_library`, `docs/architecture/enforcement.md`, `docs/architecture/architecture.md` (role, diagram, rules 2 and 4), `README.md` intro + related repos, `pyproject.toml` description, `.claude/CLAUDE.md`
+- [x] Quality checks (format, pylint, pytest, mypy, ruff, lint-imports, tach, vulture) — fix all issues
+- [x] Commit message prepared: `docs: name tool contracts in the package role; add mcp-tools-sql and agent-workbench`
 
 ### Step 5: README — `## Toolset providers` section and Toolkit interface rows
 See [step_5.md](./steps/step_5.md)

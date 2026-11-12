@@ -36,7 +36,7 @@ forbidden_modules =
 # -----------------------------------------------------------------------------
 # mcp_coder_utils is the leaf in the mcp-coder dependency graph. It must not
 # import from any sibling repo (mcp_coder, mcp_tools_py, mcp_workspace,
-# mcp_config). Doing so would create a cycle.
+# mcp_config, mcp_tools_sql, agent_workbench). Doing so would create a cycle.
 # -----------------------------------------------------------------------------
 [importlinter:contract:leaf_library]
 name = Leaf Library — No Internal mcp-coder Dependencies
@@ -48,6 +48,8 @@ forbidden_modules =
     mcp_tools_py
     mcp_workspace
     mcp_config
+    mcp_tools_sql
+    agent_workbench
 
 # -----------------------------------------------------------------------------
 # Contract: No MCP or Agent Framework Dependencies
