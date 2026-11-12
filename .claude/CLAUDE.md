@@ -20,7 +20,7 @@ When in doubt, keep it in the consumer until a second consumer needs it.
 - *What it does* — one sentence.
 - *Why MCP doesn't* — which tool you'd have used, and what stops it.
 
-If you can't name the gap, use the MCP tool. Exempt: the approved git/gh commands under Git operations.
+If you can't name the gap, use the MCP tool. Exempt: the approved commands under Git operations.
 
 **No session scratchpad.** MCP tools can't write outside the project. Temporary files go in `.scratch/`.
 
@@ -55,10 +55,15 @@ If you can't name the gap, use the MCP tool. Exempt: the approved git/gh command
 | Get base branch | `mcp__mcp-workspace__get_base_branch` |
 | Check file size | `mcp__mcp-workspace__check_file_size` |
 | Check branch status | `mcp__mcp-workspace__check_branch_status` |
-| List GitHub issues | `mcp__mcp-workspace__github_issue_list` |
 | View GitHub issue | `mcp__mcp-workspace__github_issue_view` |
+| List GitHub issues | `mcp__mcp-workspace__github_issue_list` |
 | View GitHub PR | `mcp__mcp-workspace__github_pr_view` |
-| Search GitHub | `mcp__mcp-workspace__github_search` |
+| Search GitHub issues/PRs | `mcp__mcp-workspace__github_search` |
+| Create GitHub issue | `mcp__mcp-workspace__github_issue_create` |
+| Edit GitHub issue | `mcp__mcp-workspace__github_issue_edit` |
+| Comment on GitHub issue | `mcp__mcp-workspace__github_issue_comment` |
+| Create GitHub PR | `mcp__mcp-workspace__github_pr_create` |
+| List GitHub labels | `mcp__mcp-workspace__github_label_list` |
 
 ### Reference projects
 
@@ -68,8 +73,10 @@ Read-only browse via `mcp__mcp-workspace__read_reference_file`:
 - `mcp-workspace` — `mcp-workspace` source
 - `mcp-config` — `mcp-config` source
 - `mcp-tools-py` — `mcp-tools-py` source
+- `mcp-tools-sql` — `mcp-tools-sql` source
+- `agent-workbench` — `agent-workbench` source
 
-Sibling repos are readable in full via the reference tools and `git` with `reference_name` (`get_reference_projects` lists them). Check there before asking about another repo.
+Sibling repos are readable in full via the reference tools and `git` with `reference_name` (`get_reference_projects` lists them). Check there before asking about another repo. The GitHub issue/PR read tools and the issue write tools also take `reference_name` for reference projects. That is the only cross-repo route; for repos that aren't reference projects, stop and report.
 
 ## Code quality checks
 
@@ -108,15 +115,11 @@ Never use `python -c` via Bash. If you reason instead of running, label the conc
 
 ```
 git commit / add / rebase / push / checkout -b / branch
-gh issue create / edit / comment (labels only via set-status)
-gh issue view (cross-repo only — otherwise use the MCP tool)
 mcp-coder gh-tool set-status <label>
 mcp-coder check branch-status
 ```
 
-**Status labels:** use `mcp-coder gh-tool set-status` to change issue workflow status — never use raw `gh issue edit` with label flags.
-
-**Slash-prefixed `gh` arguments:** prefix with `MSYS_NO_PATHCONV=1` — Git Bash rewrites a leading `/` into a Windows path.
+**Status labels:** `github_issue_create` and `github_issue_edit` reject `status-*` labels; use `mcp-coder gh-tool set-status` to change issue workflow status.
 
 **Before every commit:** run `mcp__mcp-tools-py__run_format_code`, then stage and commit.
 
