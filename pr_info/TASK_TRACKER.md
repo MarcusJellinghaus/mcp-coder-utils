@@ -24,9 +24,9 @@ This tracks **Feature Implementation** consisting of multiple **Tasks**.
 ### Step 1: `tool_verify` module — move `VerifyItem` / `VerifyStatus` out of `toolkit`
 See [step_1.md](./steps/step_1.md)
 
-- [ ] Implementation: `tests/test_tool_verify.py`, re-export test in `tests/test_toolkit.py`, `src/mcp_coder_utils/tool_verify.py`, `toolkit.py` re-export, `tach.toml` entries
-- [ ] Quality checks (format, pylint, pytest, mypy, ruff, lint-imports, tach, vulture) — fix all issues
-- [ ] Commit message prepared: `refactor(tool_verify): move VerifyItem and VerifyStatus out of toolkit`
+- [x] Implementation: `tests/test_tool_verify.py`, re-export test in `tests/test_toolkit.py`, `src/mcp_coder_utils/tool_verify.py`, `toolkit.py` re-export, `tach.toml` entries
+- [x] Quality checks (format, pylint, pytest, mypy, ruff, lint-imports, tach, vulture) — fix all issues
+- [x] Commit message prepared: `refactor(tool_verify): move VerifyItem and VerifyStatus out of toolkit`
 
 ### Step 2: `tool_provider` module — `Toolset`, `StaticToolset`, `ToolsetProvider`
 See [step_2.md](./steps/step_2.md)

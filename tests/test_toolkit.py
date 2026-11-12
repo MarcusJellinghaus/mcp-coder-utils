@@ -5,6 +5,8 @@ from pathlib import Path
 
 import pytest
 
+import mcp_coder_utils.toolkit as toolkit_module
+from mcp_coder_utils import tool_verify
 from mcp_coder_utils.toolkit import (
     ActionRequest,
     ActionResult,
@@ -13,8 +15,6 @@ from mcp_coder_utils.toolkit import (
     JsonSchema,
     Toolkit,
     ToolkitInfo,
-    VerifyItem,
-    VerifyStatus,
     validate_params,
 )
 
@@ -92,24 +92,11 @@ class TestActionResult:
         assert result.findings == findings
 
 
-class TestVerifyItem:
-    """Tests for the VerifyItem dataclass."""
-
-    def test_defaults(self) -> None:
-        """Test default message and hint."""
-        item = VerifyItem(name="n", status="ok")
-        assert item.message == ""
-        assert item.hint is None
-
-    @pytest.mark.parametrize("status", ["ok", "warning", "error"])
-    def test_valid_status(self, status: VerifyStatus) -> None:
-        """Test that each allowed status is accepted."""
-        assert VerifyItem(name="n", status=status).status == status
-
-    def test_unknown_status_raises(self) -> None:
-        """Test that an unknown status is rejected."""
-        with pytest.raises(ValueError, match="bogus"):
-            VerifyItem(name="n", status="bogus")  # type: ignore[arg-type]
+def test_verify_types_reexported_from_tool_verify() -> None:
+    """Test that toolkit re-exports the tool_verify objects in __all__."""
+    assert toolkit_module.VerifyItem is tool_verify.VerifyItem
+    assert toolkit_module.VerifyStatus is tool_verify.VerifyStatus
+    assert {"VerifyItem", "VerifyStatus"} <= set(toolkit_module.__all__)
 
 
 class TestValidateParams:
