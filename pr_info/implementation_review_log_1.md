@@ -10,3 +10,11 @@ tests/test_tool_provider.py:84 — low — The subprocess child imports only `mc
 Verdict(decision='tasks', tasks=['In tests/test_tool_provider.py, add a test that instantiates `_MinimalProvider`, calls `build()`, asserts the result is a `StaticToolset`, and checks its `.specs` against the expected specs. This meets the acceptance criterion for the concrete `build()` → `StaticToolset` path.', 'In vulture_whitelist.py:34, remove the `ToolsetProvider.build` entry so that only `connect` stays whitelisted. Vulture should now see `build` through the new test call. Run the vulture check to confirm.', 'In `test_toolset_protocol_accepts_dataclasses` (tests/test_tool_provider.py:73), call `close()` on both `Toolset`-typed variables `resource` and `static` as well as reading `.specs`. This matches the acceptance criterion that each variable is read through both `specs` and `close()`.', 'In the subprocess import check (tests/test_tool_provider.py:84), have the child process import both `mcp_coder_utils.tool_provider` and `mcp_coder_utils.tool_verify`, as the acceptance criterion requires.'], escalate_reason=None)
 **Changes**:
 applied
+
+## Round 2 — 2026-11-12
+**Findings**:
+Round-1 fixes are in place; now checking toolkit.py imports and the README/docs diff.NO FINDINGS
+**Decisions**:
+Verdict(decision='dismiss', tasks=[], escalate_reason=None)
+**Changes**:
+dismiss
