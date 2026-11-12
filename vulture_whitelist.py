@@ -29,3 +29,10 @@ from mcp_coder_utils.toolkit import Toolkit, ToolkitInfo
 ToolkitInfo.actions  # noqa
 Toolkit.describe  # noqa
 
+# Public toolset provider API, implemented and called by downstream consumers
+from mcp_coder_utils.tool_provider import ToolsetProvider
+ToolsetProvider.build  # noqa
+
+# Base ToolsetProvider.verify doesn't read `connect`; overriding providers do
+ToolsetProvider.connect  # noqa
+

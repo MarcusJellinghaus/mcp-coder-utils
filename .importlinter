@@ -52,8 +52,9 @@ forbidden_modules =
 # -----------------------------------------------------------------------------
 # Contract: No MCP or Agent Framework Dependencies
 # -----------------------------------------------------------------------------
-# mcp_coder_utils.tool_spec is consumed by both FastMCP servers and non-MCP
-# apps (LangGraph). The library must stay framework-neutral.
+# Covers every module of the package. The tool contracts (tool_spec,
+# tool_provider, tool_verify) are consumed by FastMCP servers and non-MCP apps
+# (LangGraph, agent-workbench), so the library must stay framework-neutral.
 # -----------------------------------------------------------------------------
 [importlinter:contract:no_agent_frameworks]
 name = No MCP or Agent Framework Dependencies
@@ -65,6 +66,24 @@ forbidden_modules =
     langchain
     langchain_core
     chainlit
+
+# -----------------------------------------------------------------------------
+# Contract: Tool Provider Contract Stays Light
+# -----------------------------------------------------------------------------
+# tool_provider and tool_verify sit on consumers' start paths. jsonschema
+# (~125 ms, with referencing) belongs to toolkit only. Forbidding toolkit too
+# makes a violation name the cause. Runtime check: tests/test_tool_provider.py.
+# -----------------------------------------------------------------------------
+[importlinter:contract:light_tool_provider]
+name = Tool Provider Contract Stays Light
+type = forbidden
+source_modules =
+    mcp_coder_utils.tool_provider
+    mcp_coder_utils.tool_verify
+forbidden_modules =
+    jsonschema
+    referencing
+    mcp_coder_utils.toolkit
 
 # -----------------------------------------------------------------------------
 # Contract: Subprocess Library Isolation

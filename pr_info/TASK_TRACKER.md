@@ -31,9 +31,9 @@ See [step_1.md](./steps/step_1.md)
 ### Step 2: `tool_provider` module — `Toolset`, `StaticToolset`, `ToolsetProvider`
 See [step_2.md](./steps/step_2.md)
 
-- [ ] Implementation: `tests/test_tool_provider.py` (incl. subprocess no-heavy-imports test), `src/mcp_coder_utils/tool_provider.py`, `tach.toml`, `.importlinter` `light_tool_provider` contract + `no_agent_frameworks` comment, `vulture_whitelist.py`, `docs/architecture/enforcement.md` paragraph
-- [ ] Quality checks (format, pylint, pytest, mypy, ruff, lint-imports, tach, vulture) — fix all issues
-- [ ] Commit message prepared: `feat(tool_provider): add toolset provider contract`
+- [x] Implementation: `tests/test_tool_provider.py` (incl. subprocess no-heavy-imports test), `src/mcp_coder_utils/tool_provider.py`, `tach.toml`, `.importlinter` `light_tool_provider` contract + `no_agent_frameworks` comment, `vulture_whitelist.py`, `docs/architecture/enforcement.md` paragraph
+- [x] Quality checks (format, pylint, pytest, mypy, ruff, lint-imports, tach, vulture) — fix all issues
+- [x] Commit message prepared: `feat(tool_provider): add toolset provider contract`
 
 ### Step 3: Module dependency graph docs
 See [step_3.md](./steps/step_3.md)

@@ -8,6 +8,8 @@ An LLM working on this code sees only part of it and doesn't know the big pictur
 
 `mcp_coder_utils` also stays framework-neutral. The tool contract is consumed by FastMCP servers and non-MCP apps, so importing `mcp`, `langchain`, `langchain_core` or `chainlit` would force one framework on every consumer. Ruleset: the `no_agent_frameworks` contract in [`.importlinter`](../../.importlinter).
 
+`tool_provider` and `tool_verify` sit on consumers' start paths, so they must not load `jsonschema` or `referencing`, directly or through `toolkit`. Ruleset: the `light_tool_provider` contract in [`.importlinter`](../../.importlinter).
+
 ## Independence between modules
 
 There is no layer stack: the package is two pairs (`log_utils` -> `redaction`, `subprocess_streaming` -> `subprocess_runner`) plus standalone modules. Each module declares what it may import, so a new dependency between modules is a visible decision. Ruleset: the `depends_on` lists in [`tach.toml`](../../tach.toml). Production code never imports tests: the `no_test_imports_in_source` contract in [`.importlinter`](../../.importlinter).

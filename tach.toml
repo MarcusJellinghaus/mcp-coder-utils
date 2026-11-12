@@ -89,6 +89,15 @@ path = "mcp_coder_utils.tool_spec"
 depends_on = []
 
 [[modules]]
+path = "mcp_coder_utils.tool_provider"
+# Toolset provider contract (Toolset, StaticToolset, ToolsetProvider). Never
+# imports toolkit (keeps jsonschema off consumers' start paths).
+depends_on = [
+    { path = "mcp_coder_utils.tool_spec" },
+    { path = "mcp_coder_utils.tool_verify" },
+]
+
+[[modules]]
 path = "mcp_coder_utils.tool_verify"
 # Verification result type (VerifyItem, VerifyStatus). Stdlib only; no jsonschema.
 depends_on = []
