@@ -16,243 +16,38 @@ Leaf library: no internal dependencies, language-agnostic, safe to import from a
 pip install mcp-coder-utils
 ```
 
+## Modules
+
+| Module | Purpose |
+|--------|---------|
+| `subprocess_runner` | Run commands with timeouts, UTF-8 and Python STDIO isolation (`execute_command`, `execute_subprocess`, `launch_process`). |
+| `subprocess_streaming` | Stream a subprocess's stdout line by line, with an inactivity watchdog that kills hung processes (`stream_subprocess`). |
+| `log_utils` | Logging setup and formatters (`setup_logging`, `log_function_call`). |
+| `redaction` | Mask secrets before logging (`redact_for_logging`, `redact_env_vars`, `token_fingerprint`). |
+| `fs` | Read a file as UTF-8 with a latin-1 fallback, reject paths outside a root, convert CRLF/CR to LF (`read_file`, `normalize_path`, `normalize_line_endings`). |
+| `user_app_data` | Per-user data directory, `~/.<app_name>/` (`get_user_app_data_dir`). |
+| `toolkit` | Contract between mcp-coder and its toolkits; see [Toolkit interface](#toolkit-interface). |
+| `tool_spec` | Tools as plain data, shared by MCP and non-MCP consumers; see [Tool contract](#tool-contract). |
+| `tool_provider` | Contract for tool packages loaded as plugins; see [Toolset providers](#toolset-providers). |
+| `tool_verify` | `VerifyItem` / `VerifyStatus`, the check rows returned by `verify` in toolkits and toolset providers. |
+
 ## Toolkit interface
 
-`mcp_coder_utils.toolkit` is the contract between mcp-coder and the toolkits it runs (`from mcp_coder_utils.toolkit import ...`).
+`mcp_coder_utils.toolkit` is the contract between mcp-coder and the toolkits it runs (`from mcp_coder_utils.toolkit import ...`). A toolkit subclasses `Toolkit`, describes the actions and depths it offers, runs one `(action, depth)` at a time and returns an `ActionResult` with findings and fix text. It also supplies prompt fragments and checks its own setup. Toolkits register under the entry-point group `mcp_coder.toolkits`.
 
-### Public API
-
-| Name | Purpose |
-|------|---------|
-| `Toolkit` | Abstract base class with the constructor `Toolkit(config: Mapping[str, Any] \| None = None)`, which stores the toolkit's own config section as public `self.config`, always a mapping (empty when none is given). It only stores; config problems surface in `verify`. `describe()` and `run(request)` are required; `prompt_fragments()` defaults to `{}` and `verify(project_dir, action=None)` to `[]`. All four read `self.config`. |
-| `ToolkitInfo` | What `describe` returns: actions with their depths, params schema, LLM permissions. |
-| `ActionRequest` | Input to `run`: action, depth, project directory, params. |
-| `ActionResult` | Output of `run`: status, summary, findings, fix text, raw output. |
-| `Finding` | One issue reported by an action. |
-| `VerifyItem` | One check returned by `verify`. Lives in `mcp_coder_utils.tool_verify`; re-exported here. |
-| `ActionStatus` | `Literal["ok", "findings", "error", "skipped"]` |
-| `VerifyStatus` | `Literal["ok", "warning", "error"]`. Lives in `mcp_coder_utils.tool_verify`; re-exported here. |
-| `JsonSchema` | Alias for `dict[str, Any]`. |
-| `validate_params` | Validates params against a schema; raises `ValueError`. |
-
-### Status rules
-
-`ActionResult.status`:
-
-- `ok` — the action ran and found nothing that must be fixed. Must carry no findings.
-- `findings` — the action ran and found issues. Requires at least one finding.
-- `error` — the action could not run, including an action or depth `run` doesn't declare. Findings are allowed but not required.
-- `skipped` — the action did not apply. Must carry no findings.
-
-`run` returns ordinary problems as findings, and crashes and anything undeclared as `error`. It does not raise, and it does not run something else.
-
-A finding is something that must be fixed. Informational output, such as mypy notes, goes in `raw`. `Finding.severity` is the tool's own label, a free string that is not validated. It never decides whether something is a finding.
-
-`fix_text` is what the fix prompt inlines. It must carry everything the LLM needs, including locations.
-
-`VerifyItem.status` is `ok`, `warning` or `error`.
-
-`verify(project_dir, action=None)`: `None` checks everything; an action name checks only what that action needs. A toolkit that overrides `verify` returns an `error` item for an action it doesn't declare. The base default is `[]`.
-
-### Mutability
-
-`ActionRequest` and `Finding` are frozen. Freezing is shallow, so `params` may still be a mutable mapping. The other types are mutable, but validation runs only at construction: code that merges results must build a new `ActionResult` rather than mutate one.
-
-### Parameters schema
-
-`ToolkitInfo.params_schema` is a JSON Schema, always validated as draft 2020-12; `$schema` is ignored. The top level must have `"type": "object"` and `"additionalProperties": false`. Closing nested objects is the toolkit's responsibility. Schema and params errors raise `ValueError`.
-
-### Registration
-
-Toolkits register under the entry-point group `mcp_coder.toolkits`. The entry-point key is the toolkit's only identifier and is the value users write as `toolkit = "..."`.
-
-```toml
-[project.entry-points."mcp_coder.toolkits"]
-mcp-tools-py = "mcp_tools_py.toolkit:PythonToolkit"
-```
-
-### Depths
-
-Depths are free-form strings defined per toolkit. `quick`, `standard` and `full` are conventions; the `format` action uses `apply` and `check`, which are custom depths.
-
-`unattended` is a conventional depth for runs with nobody watching: skip whatever reaches external services. Only the toolkit knows how to express that. A toolkit that needs it declares it.
-
-The caller resolves "nearest lower depth" and logs it, only within `quick < standard < full`. If no lower depth is declared, the result is an error. Position in `ToolkitInfo.actions` has no meaning. `unattended` and custom depths never fall back.
-
-`run` has no ladder: it returns `error` for any action or depth it doesn't declare.
-
-### Prompt fragments
-
-`prompt_fragments()` returns text for mcp-coder's prompts, keyed by name:
-
-| Key | Meaning |
-|-----|---------|
-| `language_context` | What kind of project this is. |
-| `check_instructions` | How the LLM re-runs the checks. |
-| `fix.check` | The fix prompt for the `check` action, and the only home for fix prompts. |
-| `check_instructions.unattended` | Text the LLM needs in order to re-run tests the way `unattended` does. |
-
-An empty fragment drops its paragraph, and a missing one uses neutral text. A toolkit that omits `fix.check` disables that fix loop. Where `fix_text` goes in the assembled prompt is left to MarcusJellinghaus/mcp_coder#1197.
-
-### Versioning
-
-There is no `api_version`; toolkits pin `mcp-coder-utils`. A contract-breaking change requires a major release here and coordinated version bumps in the toolkit repos.
+The full contract — types, status rules, depths, prompt fragments, versioning — is in [docs/toolkit-interface.md](https://github.com/MarcusJellinghaus/mcp-coder-utils/blob/main/docs/toolkit-interface.md).
 
 ## Tool contract
 
-`mcp_coder_utils.tool_spec` describes tools as plain data, so an MCP server and a non-MCP app (e.g. LangGraph) see the same tool.
+`mcp_coder_utils.tool_spec` describes tools as plain data, so an MCP server and a non-MCP app (e.g. LangGraph) see the same tool. A producer wraps each function with `tool_spec(fn, group=..., read_only=...)` and adds it to a `ToolSink`; consumers iterate a `ToolCollector` and register each `ToolSpec` their own way.
 
-### Public API
-
-| Name | Purpose |
-|------|---------|
-| `ToolSpec` | Frozen dataclass: `name`, `description`, `fn`, `args_model`, `group`, `read_only`. |
-| `tool_spec` | `tool_spec(fn, *, group, read_only, name=None, description=None)` builds a `ToolSpec`; `args_model` is a pydantic model built once from `fn`'s signature. |
-| `ToolSink` | Protocol with `add(spec) -> None`. Producers write into it. |
-| `ToolCollector` | Default `ToolSink`. Keeps insertion order; iterable, with `len()` and `specs`. |
-
-### Rules
-
-- `name` and `description` default to `fn.__name__` and `fn.__doc__`. An empty value raises `ValueError`.
-- `group` (fully qualified, e.g. `"sql.update"`) and `read_only` are required.
-- Rejected signatures raise `ValueError`: `*args`, `**kwargs`, positional-only, `_`-prefixed or unannotated parameters, and annotations that cannot be resolved.
-- No aliasing: a parameter named like a `BaseModel` attribute (e.g. `schema`) stays a plain field.
-- Extra input keys are ignored.
-- There is no async flag: consumers check `inspect.iscoroutinefunction(spec.fn)`.
-- `ToolCollector.add` raises `ValueError` on a duplicate name.
-
-### Example
-
-```python
-from typing import Annotated
-
-from pydantic import Field
-
-from mcp_coder_utils.tool_spec import ToolCollector, ToolSink, tool_spec
-
-
-def query_x(
-    max_rows: Annotated[int, Field(ge=1, description="Maximum rows to return.")] = 100,
-) -> str:
-    """Run query x."""
-    ...
-
-
-def register(sink: ToolSink) -> None:
-    sink.add(tool_spec(query_x, group="sql.query", read_only=True))
-
-
-collector = ToolCollector()
-register(collector)
-
-# MCP consumer (FastMCP)
-for spec in collector:
-    mcp.add_tool(spec.fn, name=spec.name, description=spec.description)
-
-# Non-MCP consumer
-for spec in collector:
-    args = spec.args_model.model_validate(raw_args)
-    result = spec.fn(**dict(args))  # await it if inspect.iscoroutinefunction(spec.fn)
-```
+The full contract — types, signature rules, an example with an MCP and a non-MCP consumer — is in [docs/tool-contract.md](https://github.com/MarcusJellinghaus/mcp-coder-utils/blob/main/docs/tool-contract.md).
 
 ## Toolset providers
 
-`mcp_coder_utils.tool_provider` is the contract between a consumer (e.g. agent-workbench) and the tool packages it loads as plugins. The consumer finds a provider by name through an entry point, passes it its own config table, and gets tool specs plus something to close. `VerifyItem` is imported from `mcp_coder_utils.tool_verify`.
+`mcp_coder_utils.tool_provider` is the contract between a consumer (e.g. agent-workbench) and the tool packages it loads as plugins. The consumer finds a provider by name through an entry point, passes it its own config table, and gets tool specs plus something to close. A provider subclasses `ToolsetProvider`: `verify` checks the config, `build` returns a `Toolset`.
 
-### Public API
-
-| Name | Purpose |
-|------|---------|
-| `ToolsetProvider` | Abstract base class; `ToolsetProvider(config: Mapping[str, Any] \| None = None)` stores the provider's config table as public `self.config`, always a mapping. It only stores. `build()` is required; `verify(*, connect=False)` defaults to `[]`. |
-| `Toolset` | Protocol: read-only `specs: tuple[ToolSpec, ...]` and `close()`. A frozen dataclass with a `specs` field satisfies it. |
-| `StaticToolset` | Frozen dataclass `StaticToolset(specs)` for providers holding no resources; `close()` does nothing. |
-| `VerifyItem` / `VerifyStatus` | In `mcp_coder_utils.tool_verify`: one check returned by `verify`; status `ok`, `warning` or `error`. |
-
-### Rules
-
-- `config` is the consumer's TOML table as parsed. Unknown keys give a `warning` row in `verify` and are ignored by `build`. Missing or wrongly typed keys give an `error` row in `verify` and a `ValueError` from `build`.
-- `build` raises `ValueError` for every problem it detects, config or environment (missing file, unreadable file, missing driver). Any other exception is a provider bug.
-- Path values are absolute or start with `~`; a relative path is an error (the consumer's working directory is undefined).
-- `build` can be called repeatedly; each returned `Toolset` owns its resources and `close` releases them.
-- `build` opens no connection, makes no network call and writes nothing to disk; connections open on first use.
-- `verify` never raises for problems it detects. `verify(connect=False)` opens no connection and makes no network call. Invariant: no `error` row under `connect=False` means `build` on the same config succeeds.
-- `verify(connect=True)` returns at least the rows of `verify(connect=False)`.
-- A provider whose `build` can fail overrides `verify`; the default `[]` is only right for a provider whose `build` cannot fail.
-- Rows about the provider's own config table are named `config.<key>`; other row names (including other `config.*` names) are free.
-- Spec names are unique within one toolset; the consumer detects clashes across toolsets.
-
-### Registration
-
-The consumer names the entry-point group and defines it as a constant on its side. The entry-point name is the consumer's config name; the value is the provider class.
-
-```toml
-[project.entry-points."agent_workbench.toolsets"]
-sql = "mcp_tools_sql.toolset:SqlToolsetProvider"
-```
-
-### Versioning
-
-There is no `api_version`; providers pin `mcp-coder-utils`. A contract-breaking change requires a major release here and coordinated changes in the provider repos.
-
-### Example
-
-```python
-from collections.abc import Mapping
-from importlib.metadata import entry_points
-from pathlib import Path
-from typing import Any
-
-from mcp_coder_utils.tool_provider import StaticToolset, Toolset, ToolsetProvider
-from mcp_coder_utils.tool_spec import ToolCollector, tool_spec
-from mcp_coder_utils.tool_verify import VerifyItem
-
-
-class NotesProvider(ToolsetProvider):
-    def verify(self, *, connect: bool = False) -> list[VerifyItem]:
-        items = [
-            VerifyItem(f"config.{key}", "warning", "unknown key, ignored")
-            for key in self.config.keys() - {"path"}
-        ]
-        path = self.config.get("path")
-        if not isinstance(path, str) or not Path(path).expanduser().is_absolute():
-            items.append(VerifyItem("config.path", "error", "must be an absolute or ~ path"))
-        else:
-            items.append(VerifyItem("config.path", "ok", path))
-        return items
-
-    def build(self) -> Toolset:
-        errors = [i.message for i in self.verify() if i.status == "error"]
-        if errors:
-            raise ValueError("; ".join(errors))
-        root = Path(self.config["path"]).expanduser()
-
-        def list_notes() -> str:
-            """List the note files."""
-            return "\n".join(p.name for p in root.glob("*.md"))
-
-        collector = ToolCollector()
-        collector.add(tool_spec(list_notes, group="notes", read_only=True))
-        return StaticToolset(collector.specs)
-
-
-# Consumer
-TOOLSETS_GROUP = "agent_workbench.toolsets"
-
-
-def load_toolset(name: str, table: Mapping[str, Any]) -> Toolset:
-    (entry_point,) = entry_points(group=TOOLSETS_GROUP, name=name)
-    provider: ToolsetProvider = entry_point.load()(table)
-    for item in provider.verify():
-        print(item.status, item.name, item.message)
-    return provider.build()  # raises ValueError on any problem it detects
-
-
-toolset = load_toolset("notes", {"path": "~/notes"})
-try:
-    ...  # hand toolset.specs to the agent
-finally:
-    toolset.close()
-```
+The full contract — types, rules, registration, versioning and an example — is in [docs/toolset-providers.md](https://github.com/MarcusJellinghaus/mcp-coder-utils/blob/main/docs/toolset-providers.md).
 
 ## Development
 

@@ -6,10 +6,12 @@
 
 - Pure Python, language-agnostic. No ecosystem knowledge (no `pyproject.toml` parsing, no venv, no `.csproj`, no SQL).
 - Zero internal dependencies. Stdlib + pinned third-party libs only.
-- Every public function must have ≥2 real consumers. Single-user helpers stay in the consumer.
+- A module (one topic, e.g. line endings) enters when ≥2 consumers need that topic. Every public function in it has ≥1 real consumer — no speculative API.
+- Mechanism here, policy in the consumer. Counting line endings is shared; choosing which ending to write stays in the tool that writes.
+- Only stable code. Code that still changes with one consumer's features stays in that consumer.
 - Public API is stable. Renames and signature changes break every downstream repo.
 
-When in doubt, keep it in the consumer until a second consumer needs it.
+When in doubt, keep it in the consumer until a second consumer needs the topic. Details: `docs/architecture/architecture.md`.
 
 ## MCP Tools — mandatory
 
