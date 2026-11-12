@@ -31,15 +31,22 @@ Rules are enforced by tooling, see [enforcement.md](enforcement.md).
    `mcp_config`, `mcp_tools_sql`, or `agent_workbench`. Enforced by
    `.importlinter`. Dependencies between modules inside the package are
    declared in `tach.toml`; `tach check` enforces them and forbids cycles.
-3. **≥2 real consumers required.** Every public function must have at least
-   two real consumers (or be provably generic). Single-user "might be useful"
-   helpers belong in the consumer.
+3. **Shared topics, real consumers.**
+   - A module (one topic, e.g. line endings) enters when at least two
+     consumers need that topic. Its API is designed as one whole.
+   - Every public function has at least one real consumer. No speculative
+     "might be useful" API.
+   - Mechanism here, policy in the consumer. Counting line endings is shared;
+     choosing which ending to write stays in the tool that writes.
+   - Only stable code. Code that still changes with one consumer's features
+     stays in that consumer: a leaf library is the most-depended-on package,
+     and every change here is a coordinated release downstream.
 4. **Stable public API.** Renames and signature changes break all 5 downstream
    repos. Treat the top-level exports as a contract.
 5. **`__all__` discipline.** Only add a symbol to `__all__` when it has at least
    one external consumer (or is required by a sibling module like
    `subprocess_streaming`). Internal helpers stay unexported. Promote to `__all__`
-   when a second consumer appears.
+   when an external consumer appears.
 
 ## Package layout
 
