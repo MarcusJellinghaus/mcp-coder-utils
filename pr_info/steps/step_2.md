@@ -213,10 +213,17 @@ Tests:
 3. `test_verify_defaults_to_empty` — `verify() == []` and `verify(connect=True) == []`.
 4. `test_build_is_abstract` — a subclass without `build` raises `TypeError`
    on instantiation (`# type: ignore[abstract]` on that line).
-5. `test_static_toolset_close_does_nothing` — `StaticToolset(()).close() is None`.
-6. `test_toolset_protocol_accepts_dataclasses` — mypy-checked assignments:
+5. `test_static_toolset_close_does_nothing` — call `StaticToolset(()).close()`
+   as a plain statement; the test passes if it doesn't raise. (Asserting
+   `... is None` trips mypy's `func-returns-value`.)
+6. `test_toolset_protocol_accepts_dataclasses` — mypy-checked assignments.
+   Read `label` before the `Toolset`-typed assignment: vulture scans `tests`
+   at `--min-confidence 60` and would otherwise report the field as unused
+   (no whitelist entry):
    ```python
-   resource: Toolset = _ResourceToolset(specs=(), label="x")
+   stand_in = _ResourceToolset(specs=(), label="x")
+   assert stand_in.label == "x"
+   resource: Toolset = stand_in
    static: Toolset = StaticToolset(())
    assert resource.specs == () and static.specs == ()
    ```
