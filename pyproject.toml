@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "mcp-coder-utils"
 dynamic = ["version"]
-description = "Shared low-level Python helpers (subprocess, logging, fs) for the mcp-coder family of repos"
+description = "Shared low-level Python helpers (subprocess, logging, fs) and tool contracts (toolkit, tool spec, toolset provider) for the mcp-coder family of repos"
 authors = [
     {name = "Marcus Jellinghaus", email = "Marcus@Jellinghaus.ch"}
 ]

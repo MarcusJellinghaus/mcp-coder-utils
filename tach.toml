@@ -5,14 +5,18 @@
 # Run with: tach check (or tools/tach_check.sh / tools/tach_check.bat)
 #
 # Division of labour with import-linter (.importlinter):
-# - import-linter owns the leaf-library contract (no imports from sibling
-#   mcp-coder repos) and the no-tests-in-src contract.
+# - import-linter owns the forbidden-import contracts.
 # - tach adds per-module dependency declarations and cycle detection for
 #   src/ (tests/ is not covered — see source_roots below).
 #
-# No layers: the package is two independent pairs (log_utils -> redaction,
-# subprocess_streaming -> subprocess_runner) plus standalone modules. There
-# is no stack to enforce; depends_on already says everything.
+# No layers. The only dependencies between modules are:
+#   log_utils            -> redaction
+#   subprocess_streaming -> subprocess_runner, subprocess_helpers
+#   subprocess_runner    -> subprocess_helpers
+#   tool_provider        -> tool_spec, tool_verify
+#   toolkit              -> tool_verify
+# All other modules are standalone. There is no stack to enforce;
+# depends_on already says everything.
 # =============================================================================
 
 exclude = ["**/__pycache__", "build/", "dist/", ".venv/", "*.egg-info/"]
@@ -77,12 +81,29 @@ depends_on = [
 
 [[modules]]
 path = "mcp_coder_utils.toolkit"
-# Toolkit contract (base class + result types). No internal dependencies.
-depends_on = []
+# Toolkit contract (base class + result types). Re-exports VerifyItem and
+# VerifyStatus from tool_verify.
+depends_on = [
+    { path = "mcp_coder_utils.tool_verify" },
+]
 
 [[modules]]
 path = "mcp_coder_utils.tool_spec"
 # Tool contract (ToolSpec, ToolSink) for MCP and non-MCP consumers. No internal dependencies.
+depends_on = []
+
+[[modules]]
+path = "mcp_coder_utils.tool_provider"
+# Toolset provider contract (Toolset, StaticToolset, ToolsetProvider). Never
+# imports toolkit (keeps jsonschema off consumers' start paths).
+depends_on = [
+    { path = "mcp_coder_utils.tool_spec" },
+    { path = "mcp_coder_utils.tool_verify" },
+]
+
+[[modules]]
+path = "mcp_coder_utils.tool_verify"
+# Verification result type (VerifyItem, VerifyStatus). Stdlib only; no jsonschema.
 depends_on = []
 
 [[modules]]

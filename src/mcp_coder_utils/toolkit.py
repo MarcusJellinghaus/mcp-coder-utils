@@ -9,6 +9,8 @@ from typing import Any, Literal, get_args
 from jsonschema import Draft202012Validator
 from referencing.exceptions import Unresolvable
 
+from mcp_coder_utils.tool_verify import VerifyItem, VerifyStatus
+
 __all__ = [
     "ActionStatus",
     "VerifyStatus",
@@ -23,7 +25,6 @@ __all__ = [
 ]
 
 ActionStatus = Literal["ok", "findings", "error", "skipped"]
-VerifyStatus = Literal["ok", "warning", "error"]
 JsonSchema = dict[str, Any]
 
 
@@ -145,35 +146,6 @@ class ActionResult:
             raise ValueError("Status 'findings' requires at least one finding")
         if self.status in ("ok", "skipped") and self.findings:
             raise ValueError(f"Status {self.status!r} must not carry findings")
-
-
-@dataclass
-class VerifyItem:
-    """Result of one toolkit verification check. Validated at construction only.
-
-    Attributes:
-        name: Name of the check.
-        status: Outcome of the check.
-        message: Human-readable detail.
-        hint: Suggested remedy, if any.
-    """
-
-    name: str
-    status: VerifyStatus
-    message: str = ""
-    hint: str | None = None
-
-    def __post_init__(self) -> None:
-        """Validate status.
-
-        Raises:
-            ValueError: If status is unknown.
-        """
-        allowed = get_args(VerifyStatus)
-        if self.status not in allowed:
-            raise ValueError(
-                f"Unknown verify status {self.status!r}; allowed: {', '.join(allowed)}"
-            )
 
 
 @dataclass

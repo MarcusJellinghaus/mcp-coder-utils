@@ -1,6 +1,6 @@
 ## About this repo
 
-`mcp-coder-utils` is a **leaf library**: shared low-level Python helpers (subprocess, logging, fs) used by `mcp-coder`, `mcp-tools-py`, `mcp-workspace`, and `mcp-tools-sql`.
+`mcp-coder-utils` is a **leaf library**: shared low-level Python helpers (subprocess, logging, fs) and tool contracts (toolkit, tool spec, toolset provider), used by `mcp-coder`, `mcp-tools-py`, `mcp-workspace`, `mcp-tools-sql`, and `agent-workbench`.
 
 **Architectural rules:**
 

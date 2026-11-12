@@ -29,3 +29,7 @@ from mcp_coder_utils.toolkit import Toolkit, ToolkitInfo
 ToolkitInfo.actions  # noqa
 Toolkit.describe  # noqa
 
+# Base ToolsetProvider.verify doesn't read `connect`; overriding providers do
+from mcp_coder_utils.tool_provider import ToolsetProvider
+ToolsetProvider.connect  # noqa
+
