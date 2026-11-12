@@ -52,6 +52,12 @@ class TestToolsetProvider:
         assert provider.verify() == []
         assert provider.verify(connect=True) == []
 
+    def test_build_returns_static_toolset(self) -> None:
+        """Test that a concrete provider's build returns its toolset."""
+        toolset = _MinimalProvider().build()
+        assert isinstance(toolset, StaticToolset)
+        assert toolset.specs == ()
+
     def test_build_is_abstract(self) -> None:
         """Test that a subclass without build cannot be instantiated."""
 
@@ -76,12 +82,15 @@ class TestToolset:
         resource: Toolset = stand_in
         static: Toolset = StaticToolset(())
         assert resource.specs == () and static.specs == ()
+        resource.close()
+        static.close()
 
 
 def test_import_loads_no_heavy_modules() -> None:
-    """Test that importing tool_provider loads no MCP, jsonschema or toolkit."""
+    """Test that the provider contract loads no MCP, jsonschema or toolkit."""
     script = (
-        "import json, sys, mcp_coder_utils, mcp_coder_utils.tool_provider; "
+        "import json, sys, mcp_coder_utils, mcp_coder_utils.tool_provider, "
+        "mcp_coder_utils.tool_verify; "
         "print(json.dumps({'file': mcp_coder_utils.__file__, "
         "'modules': sorted(sys.modules)}))"
     )
