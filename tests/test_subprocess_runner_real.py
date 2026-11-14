@@ -227,12 +227,8 @@ class TestRealTimeoutHandling:
             [sys.executable, "-c", "import time; time.sleep(30)"],
             options,
         )
-        # On Windows with STDIO isolation, PermissionError is acceptable
-        if result.execution_error and "PermissionError" in result.execution_error:
-            assert result.return_code == 1
-        else:
-            assert result.timed_out
-            assert result.return_code == 1
+        assert result.timed_out
+        assert result.return_code == 1
 
     def test_fast_command_does_not_timeout(self) -> None:
         """A fast command must complete within a generous timeout."""
