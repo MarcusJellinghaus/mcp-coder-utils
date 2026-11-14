@@ -269,7 +269,9 @@ def _run_subprocess(  # pylint: disable=too-many-statements
 
     # Use file-based STDIO for Python commands if needed
     if use_stdio_isolation and options.capture_output:
-        with tempfile.TemporaryDirectory() as temp_dir:
+        with tempfile.TemporaryDirectory(
+            prefix="mcp_coder_utils_", ignore_cleanup_errors=True
+        ) as temp_dir:
             stdout_file = Path(temp_dir) / "stdout.txt"
             stderr_file = Path(temp_dir) / "stderr.txt"
 
