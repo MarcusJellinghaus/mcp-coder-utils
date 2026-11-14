@@ -84,16 +84,9 @@ class TestExecuteSubprocess:
         )
 
         assert result.return_code == 1
-        # On Windows with STDIO isolation, we might get a PermissionError instead of proper timeout
-        # This is a known limitation when file handles are locked
-        if result.execution_error and "PermissionError" in result.execution_error:
-            # Accept this as a valid timeout scenario on Windows
-            assert result.timed_out is False
-            assert "The process cannot access the file" in result.execution_error
-        else:
-            assert result.timed_out is True
-            assert result.execution_error is not None
-            assert "Process timed out after 1 seconds" in result.execution_error
+        assert result.timed_out is True
+        assert result.execution_error is not None
+        assert "Process timed out after 1 seconds" in result.execution_error
         assert result.runner_type == "subprocess"
 
     def test_execute_command_permission_error(self) -> None:

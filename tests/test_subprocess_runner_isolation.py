@@ -122,16 +122,9 @@ class TestSTDIOIsolation:
 
         result = execute_subprocess(command, options)
 
-        # On Windows with STDIO isolation, we might get a PermissionError instead of proper timeout
-        # This is a known limitation when file handles are locked
-        if result.execution_error and "PermissionError" in result.execution_error:
-            # Accept this as a valid timeout scenario on Windows
-            assert result.timed_out is False
-            assert "The process cannot access the file" in result.execution_error
-        else:
-            assert result.timed_out is True
-            assert result.execution_error is not None
-            assert "Process timed out after 1 seconds" in result.execution_error
+        assert result.timed_out is True
+        assert result.execution_error is not None
+        assert "Process timed out after 1 seconds" in result.execution_error
 
     def test_non_python_subprocess(self) -> None:
         """Test regular subprocess execution for non-Python commands."""
@@ -400,9 +393,6 @@ class TestIntegrationScenarios:
                 pytest.skip(
                     f"Test timed out - STDIO isolation may be causing issues: {result.execution_error}"
                 )
-
-            if result.execution_error and "PermissionError" in result.execution_error:
-                pytest.skip(f"Windows file locking issue: {result.execution_error}")
 
             assert result.return_code == 0, (
                 f"Script failed with code {result.return_code}, stdout: {result.stdout}, stderr: {result.stderr}, error: {result.execution_error}"

@@ -6,6 +6,7 @@ by exercising real Python subprocesses via sys.executable.
 
 import os
 import sys
+import tempfile
 from pathlib import Path
 
 import pytest
@@ -226,12 +227,8 @@ class TestRealTimeoutHandling:
             [sys.executable, "-c", "import time; time.sleep(30)"],
             options,
         )
-        # On Windows with STDIO isolation, PermissionError is acceptable
-        if result.execution_error and "PermissionError" in result.execution_error:
-            assert result.return_code == 1
-        else:
-            assert result.timed_out
-            assert result.return_code == 1
+        assert result.timed_out
+        assert result.return_code == 1
 
     def test_fast_command_does_not_timeout(self) -> None:
         """A fast command must complete within a generous timeout."""
@@ -292,3 +289,20 @@ class TestRealExecuteCommand:
         assert os.path.normcase(result.stdout.strip()) == os.path.normcase(
             str(tmp_path)
         )
+
+    @pytest.mark.skipif(os.name != "nt", reason="Windows file locking only")
+    def test_grandchild_holding_output_files_does_not_lose_result(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """A grandchild holding stdout/stderr open must not discard the child's result."""
+        monkeypatch.setattr(tempfile, "tempdir", str(tmp_path))
+        child = (
+            "import subprocess, sys\n"
+            "subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(5)'],"
+            " stdout=sys.stdout, stderr=sys.stderr)\n"
+            "print('child done', flush=True)\n"
+        )
+        result = execute_command([sys.executable, "-c", child])
+        assert result.return_code == 0
+        assert "child done" in result.stdout
+        assert result.execution_error is None
