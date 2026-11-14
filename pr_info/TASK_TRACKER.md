@@ -21,6 +21,19 @@ This tracks **Feature Implementation** consisting of multiple **Tasks**.
 
 ## Tasks
 
-<!-- Tasks populated from pr_info/steps/ by prepare_task_tracker -->
+### Step 1: Grandchild regression test + `ignore_cleanup_errors=True` — [step_1.md](./steps/step_1.md)
+
+- [ ] Implementation (tests + production code)
+- [ ] Quality checks (pylint, pytest, mypy) — fix all issues
+- [ ] Commit message prepared
+
+### Step 2: Remove `PermissionError` workarounds from existing tests — [step_2.md](./steps/step_2.md)
+
+- [ ] Implementation (tests + production code)
+- [ ] Quality checks (pylint, pytest, mypy) — fix all issues
+- [ ] Commit message prepared
 
 ## Pull Request
+
+- [ ] PR review — review all changes against `main`
+- [ ] PR summary prepared
