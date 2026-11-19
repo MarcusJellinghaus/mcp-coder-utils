@@ -33,7 +33,7 @@ types = [
 ]
 
 # Type checking - mypy + type stubs (declared first-class, not transitive)
-typecheck = ["mypy>=1.13.0", "mcp-coder-utils[types]"]
+typecheck = ["mypy>=2.4.1", "mcp-coder-utils[types]"]
 
 # Test utilities - for local development (execution env already has pytest/mypy)
 test = [
