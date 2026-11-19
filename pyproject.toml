@@ -55,7 +55,7 @@ dev = [
     "ruff~=0.17.2",
     "deptry>=0.25.1",
     "diff-cover",
-    "pylint>=3.0.0",
+    "pylint>=4.1.4",
     "mcp-coder",
     "mcp-tools-py",
     "mcp-workspace",
