@@ -29,7 +29,7 @@ dependencies = [
 [project.optional-dependencies]
 # Type stubs - required in PROJECT venv for mypy type resolution
 types = [
-    "types-jsonschema>=4.20",
+    "types-jsonschema>=4.26.0.20261006",
 ]
 
 # Type checking - mypy + type stubs (declared first-class, not transitive)
