@@ -112,6 +112,11 @@ path = "mcp_coder_utils.user_app_data"
 depends_on = []
 
 [[modules]]
+path = "mcp_coder_utils.verify_render"
+# Verify output rendering (rows, sections, status markers). Stdlib only.
+depends_on = []
+
+[[modules]]
 path = "mcp_coder_utils.fs"
 # Filesystem helpers (path security, file reading, line endings). One module:
 # fs/__init__.py re-exports its own submodules, which tach treats as internal.

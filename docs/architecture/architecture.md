@@ -64,6 +64,7 @@ src/mcp_coder_utils/
     tool_verify.py
     toolkit.py
     user_app_data.py
+    verify_render.py
     fs/
         __init__.py
         path_security.py
