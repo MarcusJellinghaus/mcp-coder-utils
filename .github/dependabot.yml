@@ -9,9 +9,13 @@ updates:
     labels:
       - "dependencies"
       - "python"
-    versioning-strategy: "auto"
+    # Library: keep minimums as hard floors. Only touch a requirement when a
+    # new release falls outside it (e.g. a <3 cap), never raise a >= floor.
+    versioning-strategy: "increase-if-necessary"
     allow:
       - dependency-type: "all"
+    cooldown:
+      default-days: 7
 
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -22,3 +26,5 @@ updates:
     labels:
       - "dependencies"
       - "CI"
+    cooldown:
+      default-days: 7
