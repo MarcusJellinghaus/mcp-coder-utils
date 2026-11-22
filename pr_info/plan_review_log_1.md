@@ -1,0 +1,11 @@
+# review-plan review log 1
+
+## Round 1 — 2026-11-22
+**Findings**:
+Checking the source files in mcp_coder against the plan's claims.Checking whether ported one-line docstrings would trip this repo's ruff DOC201 rule.pr_info/steps/step_2.md:132 — medium — The probe relies on `-s` to show `repr(output)`, but `pyproject.toml` addopts adds `-n auto`. Under xdist, worker stdout is not passed through, so the literal never appears for step 3 ("copy the printed output"). Add `-p no:xdist` (or `-n 0`) to the probe's extra_args, or have the probe report the repr in a deliberate assertion message.
+pr_info/steps/step_2.md:134 — low — "If the outputs differ, the port is wrong: fix the module until they match" assumes the installed `mcp_coder` matches the reference source. If the installed copy is stale, this tells the implementer to change code that was meant to be copied verbatim. Diff the module against the reference `verify_render.py`/`verify_formatting.py` first, and change it only for a real port error.
+pr_info/steps/step_3.md:1 — low — Step 3 is a two-line, docs-only change. `planning_principles.md` says to merge trivially small steps, so fold the README row and the `architecture.md` entry into step 2 (or step 1).
+**Decisions**:
+Verdict(decision='tasks', tasks=["pr_info/steps/step_2.md:132 — the probe's `-s` output gets swallowed under xdist because pyproject addopts adds `-n auto`. Add `-n 0` (or `-p no:xdist`) to the probe's extra_args so the printed repr(output) shows up for copying. Or have the probe report the repr in a deliberate assertion failure message.", "pr_info/steps/step_2.md:134 — replace 'If the outputs differ, the port is wrong: fix the module until they match'. New wording: on a mismatch, first diff the ported module against the reference mcp_coder `verify_render.py`/`verify_formatting.py`. Change the module only if that diff shows a real port error. If the module matches the reference, treat the installed mcp_coder as stale and use the reference source as ground truth.", "pr_info/steps/step_3.md — fold this trivially small docs-only step into step 2, as planning_principles.md requires. Move the README row and the architecture.md entry into step 2, delete step_3.md, and update any step numbering or cross-references (e.g. step 2's 'copy the printed output' hand-off to step 3)."], escalate_reason=None)
+**Changes**:
+applied
