@@ -1,12 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "Bash(./tools/ruff_check.sh:*)",
-      "Bash(git checkout:*)",
-      "Bash(git pull:*)",
-      "Bash(mcp-coder gh-tool:*)",
-      "Bash(mcp-coder git-tool:*)",
-      "Bash(start docs/architecture/dependency_graph.html)",
+      "Bash(mcp-coder gh-tool checkout-issue-branch:*)",
       "Skill(check_branch_status)",
       "Skill(commit_push)",
       "Skill(discuss)",
@@ -18,10 +13,8 @@
       "Skill(implementation_review)",
       "Skill(implementation_review_supervisor)",
       "Skill(issue_analyse)",
-      "Skill(issue_analyse_supervisor)",
       "Skill(issue_approve)",
       "Skill(issue_create)",
-      "Skill(issue_requirements)",
       "Skill(issue_update)",
       "Skill(plan_approve)",
       "Skill(plan_review)",
@@ -78,7 +71,10 @@
       "mcp__mcp-workspace__save_file",
       "mcp__mcp-workspace__search_files",
       "mcp__mcp-workspace__search_reference_files",
-      "mcp__mcp-tools-py__run_tach_check"
+      "mcp__mcp-tools-py__run_tach_check",
+      "mcp__mcp-tools-py__run_bandit_check",
+      "mcp__mcp-tools-py__run_ruff_fix",
+      "mcp__mcp-workspace__github_subissue_list"
     ]
   },
   "enableAllProjectMcpServers": true,
