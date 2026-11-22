@@ -24,9 +24,9 @@ This tracks **Feature Implementation** consisting of multiple **Tasks**.
 ### Step 1: `fs/line_endings.py` — count, dominant newline, write
 See [step_1.md](./steps/step_1.md)
 
-- [ ] Implementation (tests + production code): rename `text.py` → `line_endings.py` and its test file, add `count_line_endings`, `dominant_newline`, `write_text`, update `fs/__init__.py` exports and `architecture.md` package layout
-- [ ] Quality checks (pylint, pytest, mypy, ruff, vulture, tach, lint-imports, deptry, format) — fix all issues
-- [ ] Commit message prepared
+- [x] Implementation (tests + production code): rename `text.py` → `line_endings.py` and its test file, add `count_line_endings`, `dominant_newline`, `write_text`, update `fs/__init__.py` exports and `architecture.md` package layout
+- [x] Quality checks (pylint, pytest, mypy, ruff, vulture, tach, lint-imports, deptry, format) — fix all issues
+- [x] Commit message prepared
 
 ### Step 2: `fs/path_security.py` — `check_path_within`, stricter `normalize_path`
 See [step_2.md](./steps/step_2.md)

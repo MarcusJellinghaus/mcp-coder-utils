@@ -67,9 +67,9 @@ src/mcp_coder_utils/
     verify_render.py
     fs/
         __init__.py
+        line_endings.py
         path_security.py
         read_file.py
-        text.py
 ```
 
 ## Tests
