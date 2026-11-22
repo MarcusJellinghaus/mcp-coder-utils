@@ -107,10 +107,15 @@ Shared test helpers:
 - `OSError` from `resolve()` (`side_effect=OSError("boom")`) → `OSError`.
 - `..` with `resolve()` raising `OSError` → `ValueError` (check runs first).
 - `RuntimeError` from `resolve()` (`side_effect=RuntimeError("loop")`) → `OSError`.
-- stat loop (with `identity_resolve`), parametrised exception factory:
-  `OSError(errno.ELOOP, "loop")`; and an `OSError("loop")` with
+- stat loop on the resolved path (with `identity_resolve`, `root = tmp_path`,
+  path `"sub/file.txt"`): capture `real_stat = Path.stat` before patching,
+  then `patch.object(Path, "stat", autospec=True, side_effect=fake_stat)`
+  where `fake_stat(self, **kwargs)` returns `real_stat(self)` when
+  `self == root` and raises the loop error otherwise. Parametrised exception
+  factory: `OSError(errno.ELOOP, "loop")`; and an `OSError("loop")` with
   `setattr(exc, "winerror", 1921)  # noqa: B010 - typeshed declares winerror only on win32; attribute assignment fails mypy on Linux`
-  → `OSError`.
+  → `OSError`. The root stats cleanly, so only the path-stat check
+  (Decision 15) can raise; an implementation that stats only the root fails.
 - looping `root`, outside `path` (with `identity_resolve`): `Path.stat`
   mocked (`autospec=True`) to raise `OSError(errno.ELOOP, ...)` only when
   `self == root`, else `FileNotFoundError`; `path = str(tmp_path.parent / "out")`
@@ -119,8 +124,10 @@ Shared test helpers:
   (covered by the inside-relative case; nothing exists).
 - real symlink escape: `root = tmp_path / "root"`, link `root / "link"` →
   `tmp_path / "outside"` (created) → `ValueError` "outside allowed root".
-- real symlink loop: `root / "a"` → `root / "b"`, `root / "b"` →
-  `root / "a"` → `OSError`.
+- real symlink loop: `root = tmp_path / "root"`, `root.mkdir()` first, then
+  links `root / "a"` → `root / "b"` and `root / "b"` → `root / "a"`;
+  `check("a", root)` (relative to `root`, so the loop is the last path
+  component) → `OSError`.
 
 Plus one test: `check_path_within(Path("sub/file.txt"), tmp_path)` accepts a
 `Path`; and `normalize_path` returns `tmp_path / "sub" / "file.txt"` (existing
