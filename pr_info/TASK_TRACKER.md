@@ -31,9 +31,9 @@ See [step_1.md](./steps/step_1.md)
 ### Step 2: `fs/path_security.py` — `check_path_within`, stricter `normalize_path`
 See [step_2.md](./steps/step_2.md)
 
-- [ ] Implementation (tests + production code): add `_resolve_within` and `check_path_within`, reimplement `normalize_path` on it, export `check_path_within` from `fs/__init__.py`
-- [ ] Quality checks (pylint, pytest, mypy, ruff, vulture, tach, lint-imports, deptry, file size, format) — fix all issues
-- [ ] Commit message prepared
+- [x] Implementation (tests + production code): add `_resolve_within` and `check_path_within`, reimplement `normalize_path` on it, export `check_path_within` from `fs/__init__.py`
+- [x] Quality checks (pylint, pytest, mypy, ruff, vulture, tach, lint-imports, deptry, file size, format) — fix all issues
+- [x] Commit message prepared
 
 ### Step 3: Docs — "no git knowledge" rule and README `fs` row
 See [step_3.md](./steps/step_3.md)

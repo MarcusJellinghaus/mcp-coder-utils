@@ -6,10 +6,11 @@ from mcp_coder_utils.fs.line_endings import (
     normalize_line_endings,
     write_text,
 )
-from mcp_coder_utils.fs.path_security import normalize_path
+from mcp_coder_utils.fs.path_security import check_path_within, normalize_path
 from mcp_coder_utils.fs.read_file import read_file
 
 __all__ = [
+    "check_path_within",
     "count_line_endings",
     "dominant_newline",
     "normalize_line_endings",
