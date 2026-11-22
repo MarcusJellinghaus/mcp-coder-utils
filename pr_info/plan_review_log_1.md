@@ -9,3 +9,11 @@ pr_info/steps/step_2.md:122 — low — The real symlink loop test doesn't say w
 Verdict(decision='tasks', tasks=['In pr_info/steps/step_2.md:110, change the mocked stat-loop test so the `Path.stat` mock raises ELOOP (POSIX) or winerror 1921 (Windows) only when `self != root`, and returns a real stat result for `resolved_root`. The test must then exercise the path-stat loop detection from Decision 15. An implementation that stats only the root must fail it.', 'In pr_info/steps/step_2.md:122, name the `path` argument the real symlink-loop test passes to the check (e.g. `"a"`, relative to `root`). Also state that `root` is created before the self-referencing symlink, so the loop sits in the last path component.'], escalate_reason=None)
 **Changes**:
 applied
+
+## Round 2 — 2026-11-22
+**Findings**:
+Checking the architecture doc's rule 1 and the module docstring so I can finish the review.`pr_info/steps/step_2.md:125` — medium — The real symlink-escape test sets `root = tmp_path / "root"` but never says to call `root.mkdir()` first, and it doesn't name the `path` argument (`"link"`). If `root` is missing, `os.symlink` raises `FileNotFoundError`. That is an `OSError`, so `_symlink_or_skip` skips the test silently on every platform, including CI Ubuntu, and the escape case gets no coverage. Fix: say `root.mkdir()` and `outside.mkdir()` come before the link, and that the test calls `check("link", root)` and expects `ValueError` "outside allowed root".
+**Decisions**:
+Verdict(decision='tasks', tasks=['In pr_info/steps/step_2.md:125, have the real symlink-escape test create `root` and `outside` with `root.mkdir()` and `outside.mkdir()` before it makes the symlink. Without them, `os.symlink` raises `FileNotFoundError` and `_symlink_or_skip` silently skips the test. Also name the call `check("link", root)` and say it must raise `ValueError` with "outside allowed root".'], escalate_reason=None)
+**Changes**:
+applied
