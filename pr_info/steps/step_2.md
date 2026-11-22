@@ -122,8 +122,11 @@ Shared test helpers:
   → `OSError`.
 - other `stat()` errors ignored: nonexistent inside path → no raise
   (covered by the inside-relative case; nothing exists).
-- real symlink escape: `root = tmp_path / "root"`, link `root / "link"` →
-  `tmp_path / "outside"` (created) → `ValueError` "outside allowed root".
+- real symlink escape: `root = tmp_path / "root"`, `outside = tmp_path /
+  "outside"`; `root.mkdir()` and `outside.mkdir()` first (otherwise
+  `os.symlink` raises `FileNotFoundError` and `_symlink_or_skip` silently
+  skips), then link `root / "link"` → `outside`; `check("link", root)` →
+  `ValueError` "outside allowed root".
 - real symlink loop: `root = tmp_path / "root"`, `root.mkdir()` first, then
   links `root / "a"` → `root / "b"` and `root / "b"` → `root / "a"`;
   `check("a", root)` (relative to `root`, so the loop is the last path
