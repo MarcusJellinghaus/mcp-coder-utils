@@ -26,6 +26,7 @@ Rules are enforced by tooling, see [enforcement.md](enforcement.md).
 
 1. **Pure Python, language-agnostic.** No knowledge of any specific ecosystem
    (no `pyproject.toml` parsing, no venv awareness, no `.csproj`, no SQL).
+   No git knowledge (git belongs in mcp-workspace).
 2. **Zero internal dependencies.** Stdlib + a small set of pinned third-party
    libs only. Never imports from `mcp_coder`, `mcp_tools_py`, `mcp_workspace`,
    `mcp_config`, `mcp_tools_sql`, or `agent_workbench`. Enforced by
@@ -67,9 +68,9 @@ src/mcp_coder_utils/
     verify_render.py
     fs/
         __init__.py
+        line_endings.py
         path_security.py
         read_file.py
-        text.py
 ```
 
 ## Tests

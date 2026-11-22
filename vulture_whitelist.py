@@ -33,3 +33,7 @@ Toolkit.describe  # noqa
 from mcp_coder_utils.tool_provider import ToolsetProvider
 ToolsetProvider.connect  # noqa
 
+# Fixture reached through pytest.mark.usefixtures("identity_resolve")
+from tests.test_fs_path_security import identity_resolve
+identity_resolve  # noqa
+

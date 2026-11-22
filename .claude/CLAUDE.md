@@ -4,7 +4,7 @@
 
 **Architectural rules:**
 
-- Pure Python, language-agnostic. No ecosystem knowledge (no `pyproject.toml` parsing, no venv, no `.csproj`, no SQL).
+- Pure Python, language-agnostic. No ecosystem knowledge (no `pyproject.toml` parsing, no venv, no `.csproj`, no SQL). No git knowledge (git belongs in mcp-workspace).
 - Zero internal dependencies. Stdlib + pinned third-party libs only.
 - A module (one topic, e.g. line endings) enters when ≥2 consumers need that topic. Every public function in it has ≥1 real consumer — no speculative API.
 - Mechanism here, policy in the consumer. Counting line endings is shared; choosing which ending to write stays in the tool that writes.

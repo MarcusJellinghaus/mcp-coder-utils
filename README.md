@@ -24,7 +24,7 @@ pip install mcp-coder-utils
 | `subprocess_streaming` | Stream a subprocess's stdout line by line, with an inactivity watchdog that kills hung processes (`stream_subprocess`). |
 | `log_utils` | Logging setup and formatters (`setup_logging`, `log_function_call`). |
 | `redaction` | Mask secrets before logging (`redact_for_logging`, `redact_env_vars`, `token_fingerprint`). |
-| `fs` | Read a file as UTF-8 with a latin-1 fallback, reject paths outside a root, convert CRLF/CR to LF (`read_file`, `normalize_path`, `normalize_line_endings`). |
+| `fs` | Read a file as UTF-8 with a latin-1 fallback; count line endings, pick the dominant one and write UTF-8 text with a chosen ending; check that a path stays within a root (`read_file`, `normalize_line_endings`, `count_line_endings`, `dominant_newline`, `write_text`, `check_path_within`, `normalize_path`). |
 | `user_app_data` | Per-user data directory, `~/.<app_name>/` (`get_user_app_data_dir`). |
 | `toolkit` | Contract between mcp-coder and its toolkits; see [Toolkit interface](#toolkit-interface). |
 | `tool_spec` | Tools as plain data, shared by MCP and non-MCP consumers; see [Tool contract](#tool-contract). |
