@@ -1,10 +1,11 @@
-# Step 2 — `render_rows`, `SectionBuilder` and exact-output test
+# Step 2 — `render_rows`, `SectionBuilder`, exact-output test and docs
 
 ## LLM prompt
 
 > Read `pr_info/steps/summary.md`, then implement `pr_info/steps/step_2.md` exactly. Step 1 is done: `src/mcp_coder_utils/verify_render.py` has the layout primitives. Follow TDD:
 > 1. Write `tests/test_verify_render_builder.py` first.
 > 2. Then append `render_rows` and `SectionBuilder` to the module.
+> 3. Then update the docs (architecture layout, README row).
 >
 > Port the code verbatim from reference project `mcp_coder`. Run every check listed in the summary. Delete `.scratch/`. Make exactly one commit. Do not edit `pr_info/TASK_TRACKER.md`.
 
@@ -13,6 +14,8 @@
 - `tests/test_verify_render_builder.py`: new
 - `src/mcp_coder_utils/verify_render.py`: append after `_pad`
 - `vulture_whitelist.py`: only if `run_vulture_check` flags something
+- `docs/architecture/architecture.md`: the code block under "Package layout"
+- `README.md`: the "Modules" table
 - `.scratch/test_probe.py`: temporary, deleted before the commit
 
 ## WHAT (added to the module)
@@ -129,10 +132,31 @@ assert capsys.readouterr().out == (
 
 **Getting the literal:** use a scratch probe that compares against today's mcp_coder.
 1. Save `.scratch/test_probe.py`. It renders the same input through `mcp_coder.cli.commands.verify_render.SectionBuilder`, using `Row` and `_hint` from `mcp_coder.cli.commands.verify_formatting`, and through `mcp_coder_utils.verify_render`. It asserts the two captured outputs are equal and prints `repr(output)`.
-2. Run it with `mcp__mcp-tools-py__run_pytest_check(extra_args=["-p", "no:cacheprovider", "-s", ".scratch/test_probe.py"])`.
+2. Run it with `mcp__mcp-tools-py__run_pytest_check(extra_args=["-p", "no:cacheprovider", "-n", "0", "-s", ".scratch/test_probe.py"])`. `-n 0` overrides the `-n auto` in `pyproject.toml` addopts; under xdist, `-s` output is not shown.
 3. Copy the printed output into the literal.
-4. If the outputs differ, the port is wrong: fix the module until they match. If `mcp_coder.cli.commands.verify_render` can't be imported, write the literal by hand from the layout rules instead.
+4. If the outputs differ, first diff the ported module against the reference mcp_coder `verify_render.py` and `verify_formatting.py`. Change the module only if that diff shows a real port error. If the module matches the reference, treat the installed mcp_coder as stale and use the reference source as ground truth. If `mcp_coder.cli.commands.verify_render` can't be imported, write the literal by hand from the layout rules instead.
 5. Delete the probe with `mcp__mcp-workspace__delete_directory(".scratch", recursive=True)`.
+
+## Docs
+
+**`architecture.md`:** add `verify_render.py` after `user_app_data.py`, with the same 4-space indent:
+```
+    user_app_data.py
+    verify_render.py
+    fs/
+```
+
+**`README.md`:** add a row after `tool_verify`:
+```
+| `verify_render` | Render `verify` output as titled sections of aligned status rows (`SectionBuilder`, `Row`, `hint_row`, `render_rows`, `STATUS_SYMBOLS`). |
+```
+
+Leave these unchanged:
+- the README intro
+- the `pyproject.toml` `description`
+- `CLAUDE.md`
+- the architecture.md Role paragraph
+- `docs/architecture/enforcement.md`: the new module adds no edges between modules
 
 ## DATA
 

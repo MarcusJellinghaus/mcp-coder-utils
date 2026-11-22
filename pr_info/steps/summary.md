@@ -41,16 +41,15 @@ Step 1 of epic MarcusJellinghaus/mcp-workspace#408. Moves the generic row/sectio
 | `tests/test_verify_render_builder.py` | create | 2 |
 | `tach.toml` | modify: new `[[modules]]` entry | 1 |
 | `vulture_whitelist.py` | modify only if `run_vulture_check` flags something | 1, 2 |
-| `docs/architecture/architecture.md` | modify: package layout | 3 |
-| `README.md` | modify: Modules table row | 3 |
+| `docs/architecture/architecture.md` | modify: package layout | 2 |
+| `README.md` | modify: Modules table row | 2 |
 
 No changes to `.importlinter`, `pyproject.toml`, `CLAUDE.md`, or the one-line repo descriptions.
 
 ## Steps
 
 1. `step_1.md`: layout primitives, `tests/test_verify_render_layout.py`, tach entry.
-2. `step_2.md`: `render_rows` and `SectionBuilder`, `tests/test_verify_render_builder.py`, exact-output test.
-3. `step_3.md`: docs (architecture layout, README row).
+2. `step_2.md`: `render_rows` and `SectionBuilder`, `tests/test_verify_render_builder.py`, exact-output test, docs (architecture layout, README row).
 
 ## Checks (every step)
 
