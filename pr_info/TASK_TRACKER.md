@@ -24,9 +24,9 @@ This tracks **Feature Implementation** consisting of multiple **Tasks**.
 ### Step 1: Layout primitives and tach entry
 See [step_1.md](./steps/step_1.md)
 
-- [ ] Implementation: `tests/test_verify_render_layout.py` (32 tests ported from `test_verify_format_pad.py`), `src/mcp_coder_utils/verify_render.py` layout primitives, `tach.toml` entry
-- [ ] Quality checks: format, pylint, pytest, mypy, ruff, lint-imports, tach, vulture, deptry, `\bmcp_coder\b` search — fix all issues
-- [ ] Commit message prepared
+- [x] Implementation: `tests/test_verify_render_layout.py` (32 tests ported from `test_verify_format_pad.py`), `src/mcp_coder_utils/verify_render.py` layout primitives, `tach.toml` entry
+- [x] Quality checks: format, pylint, pytest, mypy, ruff, lint-imports, tach, vulture, deptry, `\bmcp_coder\b` search — fix all issues
+- [x] Commit message prepared
 
 ### Step 2: `render_rows`, `SectionBuilder`, exact-output test and docs
 See [step_2.md](./steps/step_2.md)
