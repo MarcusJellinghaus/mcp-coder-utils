@@ -167,5 +167,9 @@ Leave these unchanged:
 
 - All checks in the summary pass.
 - The `\bmcp_coder\b` search over `tests/test_verify_render_*.py` returns no matches.
+- No test was dropped in the port. Collect both files with `run_pytest_check(extra_args=["-n", "0", "--collect-only", "-q", "tests/test_verify_render_layout.py", "tests/test_verify_render_builder.py"])`. The total must equal the ported mcp_coder tests, parametrized cases included, plus `test_exact_output`:
+  - `tests/test_verify_render_layout.py`: 32, all of `test_verify_format_pad.py` (unchanged since step 1)
+  - `tests/test_verify_render_builder.py`: 18 = `TestRenderRows` 7 + `test_assert_section_aligned_rejects_misaligned_values` 1 + `TestSectionBuilder` 9 + `test_exact_output` 1
+  - total: 50. If your own count of the source differs, trust the source and report the mismatch.
 - `.scratch/` is gone.
 - One commit, e.g. `feat(verify_render): add render_rows and SectionBuilder (#84)`.

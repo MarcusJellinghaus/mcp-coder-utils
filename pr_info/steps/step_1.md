@@ -107,4 +107,5 @@ _pad:                 "\n" + "=== TITLE " + "=" * max(0, 75 - len("=== TITLE "))
 
 - All checks in the summary pass.
 - The `\bmcp_coder\b` search over `tests/test_verify_render_*.py` returns no matches.
+- No test was dropped in the port. Collect `tests/test_verify_render_layout.py` with `run_pytest_check(extra_args=["-n", "0", "--collect-only", "-q", "tests/test_verify_render_layout.py"])`. The count must equal the source `test_verify_format_pad.py`, parametrized cases included: 32 = `TestPadHeader` 3 + `TestFormatRowHelpers` 14 + `TestPerSectionColumnRule` 15. If your own count of the source differs from 32, trust the source and report the mismatch.
 - One commit, e.g. `feat(verify_render): add verify layout primitives (#84)`.
