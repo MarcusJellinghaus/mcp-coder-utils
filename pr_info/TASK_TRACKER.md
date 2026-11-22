@@ -38,9 +38,9 @@ See [step_2.md](./steps/step_2.md)
 ### Step 3: Docs — "no git knowledge" rule and README `fs` row
 See [step_3.md](./steps/step_3.md)
 
-- [ ] Implementation: add rule to `architecture.md` and `.claude/CLAUDE.md`, update README `fs` row
-- [ ] Quality checks (pytest, format) — fix all issues
-- [ ] Commit message prepared
+- [x] Implementation: add rule to `architecture.md` and `.claude/CLAUDE.md`, update README `fs` row
+- [x] Quality checks (pytest, format) — fix all issues
+- [x] Commit message prepared
 
 ## Pull Request
 
