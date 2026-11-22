@@ -81,5 +81,6 @@
   "enabledMcpjsonServers": [
     "mcp-tools-py",
     "mcp-workspace"
-  ]
+  ],
+  "autoMemoryEnabled": false
 }
