@@ -30,6 +30,7 @@ pip install mcp-coder-utils
 | `tool_spec` | Tools as plain data, shared by MCP and non-MCP consumers; see [Tool contract](#tool-contract). |
 | `tool_provider` | Contract for tool packages loaded as plugins; see [Toolset providers](#toolset-providers). |
 | `tool_verify` | `VerifyItem` / `VerifyStatus`, the check rows returned by `verify` in toolkits and toolset providers. |
+| `verify_render` | Render `verify` output as titled sections of aligned status rows (`SectionBuilder`, `Row`, `hint_row`, `render_rows`, `STATUS_SYMBOLS`). |
 
 ## Toolkit interface
 

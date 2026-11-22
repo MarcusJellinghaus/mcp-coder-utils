@@ -31,9 +31,9 @@ See [step_1.md](./steps/step_1.md)
 ### Step 2: `render_rows`, `SectionBuilder`, exact-output test and docs
 See [step_2.md](./steps/step_2.md)
 
-- [ ] Implementation: `tests/test_verify_render_builder.py` (18 tests incl. `test_exact_output`), `render_rows` and `SectionBuilder` in `verify_render.py`, `architecture.md` layout, README Modules row, `.scratch/` deleted
-- [ ] Quality checks: format, pylint, pytest, mypy, ruff, lint-imports, tach, vulture, deptry, `\bmcp_coder\b` search, 50-test collect count — fix all issues
-- [ ] Commit message prepared
+- [x] Implementation: `tests/test_verify_render_builder.py` (18 tests incl. `test_exact_output`), `render_rows` and `SectionBuilder` in `verify_render.py`, `architecture.md` layout, README Modules row, `.scratch/` deleted
+- [x] Quality checks: format, pylint, pytest, mypy, ruff, lint-imports, tach, vulture, deptry, `\bmcp_coder\b` search, 50-test collect count — fix all issues
+- [x] Commit message prepared
 
 ## Pull Request
 
